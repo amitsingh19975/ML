@@ -2,8 +2,6 @@
 #define K_MEAN_H
 
 #include "core.hpp"
-#include <chrono>
-#include <random>
 
 namespace ML{
     using namespace boost::numeric::ublas;
@@ -16,8 +14,8 @@ namespace ML{
 
         KMean(int k = 1, int numberOfIterations = 10):_k(k),_numberOfIterations(numberOfIterations){}
 
-        void train(Frame & xTrainData, Frame & yTrainData) override;
-        void test(Frame & xTestData, Frame & yTestData) override;
+        void train(Frame* xTrainData, Frame* yTrainData) override;
+        void test(Frame* xTestData, Frame* yTestData) override;
     protected:
         int randomIdx() const noexcept;
         double mean();
@@ -26,10 +24,10 @@ namespace ML{
         }
     };
 
-    void KMean::train(Frame & xTrainData, Frame & yTrainData){
+    void KMean::train(Frame* xTrainData, Frame* yTrainData){
         this->_clustors.resize(this->_k,2);
-        auto x = Frame::cast(xTrainData[0]);
-        auto y = Frame::cast(yTrainData[1]);
+        auto x = Frame::cast(xTrainData->at(0));
+        auto y = Frame::cast(yTrainData->at(1));
         matrix<double> m(this->_k,2);
         
         for(int i = 0; i < this->_k; i++) {
@@ -41,7 +39,7 @@ namespace ML{
             this->_clustors(i,1) = 0;
         }
         
-        std::vector<size_t> assignment(xTrainData[0]->size(),0);
+        std::vector<size_t> assignment(xTrainData->at(0)->size(),0);
 
         for(size_t i = 0; i < this->_numberOfIterations; i++){
             for(size_t j = 0; j < x->size(); j++){
@@ -88,9 +86,9 @@ namespace ML{
         
         std::cout<<this->_clustors<<'\n';
     }
-    void KMean::test(Frame & xTestData, Frame & yTestData){
-        auto x = Frame::cast(xTestData[0]);
-        auto y = Frame::cast(yTestData[1]);
+    void KMean::test(Frame* xTestData, Frame* yTestData){
+        auto x = Frame::cast(xTestData->at(0));
+        auto y = Frame::cast(yTestData->at(1));
 
         matrix<double> count(this->_k,1);
 

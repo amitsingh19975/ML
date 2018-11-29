@@ -32,12 +32,12 @@ namespace ML{
     struct Series{
         std::string _type;
         std::string _header{""};
-        std::unordered_map<std::string,double> _stringToNumberMap;
+        std::unordered_map<std::string,double> _labelMap;
 
         Series(){}
         Series(std::string tag,std::string header):_type(tag), _header(header){}
-        size_t rows{0};
-        size_t size() const noexcept{return rows;}
+        size_t _size{0};
+        size_t size() const noexcept{return _size;}
         virtual ~Series() = default;
         
         virtual double mean() = 0;
@@ -49,36 +49,57 @@ namespace ML{
         virtual std::unique_ptr<std::unordered_map<std::string, int>> unique() = 0;
         virtual void apply(std::function<double(double)> func) = 0;
         virtual void print(int numberOfData = -1) const = 0;
+        virtual void swap(size_t i, size_t j) = 0;
+        virtual void push_d(double val) = 0;
+        virtual void push_s(std::string val) = 0;
+        virtual double at(int i) = 0;
+        virtual std::string atS(int i) = 0;
 
     };
     template <typename T>
     struct Vec : Series{
-        std::vector<T> _data{};
+        std::vector<T> _data;
         Vec(){}
         Vec(std::string header, std::string type, std::vector<T>& vec):_data(std::move(vec)){
             this->_header = header;
             this->_type = type;
-            this->rows = _data.size();
+            this->_size = _data.size();
         }
         Vec(std::string header, std::string type){
             this->_header = header;
             this->_type = type;
-            this->rows = _data.size();
+            this->_size = _data.size();
         }
         Vec(std::string header, std::string type, size_t size):_data(size){
             this->_header = header;
             this->_type = type;
-            this->rows = size;
+            this->_size = size;
         }
         Vec(std::string header, std::string type, std::initializer_list<T> l):_data(l){
             this->_header = header;
             this->_type = type;
-            this->rows = _data.size();
+            this->_size = _data.size();
         }
         
         void push_back(T data){
            this-> _data.push_back(data);
-           this->rows = this->_data.size();
+           this->_size = this->_data.size();
+        }
+
+        void push_d(double val) override{
+            if constexpr(std::is_same_v<T,double>) this->push_back(val);
+        }
+        void push_s(std::string val) override{
+            if constexpr(std::is_same_v<T,std::string>) this->push_back(val);
+        }
+
+        double at(int i) override{
+            if constexpr(std::is_same_v<T,double>) return this->_data[i];
+            else return 0;
+        }
+        std::string atS(int i)override{
+            if constexpr(std::is_same_v<T,std::string>) return this->_data[i];
+            else return "";
         }
         
         void print(int numberOfData = -1) const override{
@@ -177,6 +198,10 @@ namespace ML{
             if constexpr(std::is_same_v<T, std::string>) return 0; 
             else m = medianAlgo<double>(this->_data,1,this->_data.size() - 1,(this->_data.size())/2);
             return m;
+        }
+
+        void swap(size_t i, size_t j) final override{
+            std::swap(this->_data[i], this->_data[j]);
         }
 
     };

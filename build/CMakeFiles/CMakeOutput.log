@@ -28,22 +28,22 @@ The CXX compiler identification is AppleClang, found in "/Users/Amit/Desktop/Pyt
 Determining if the C compiler works passed with the following output:
 Change Dir: /Users/Amit/Desktop/Python/ML/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/local/bin/ninja" "cmTC_c9011"
-[1/2] Building C object CMakeFiles/cmTC_c9011.dir/testCCompiler.c.o
-[2/2] Linking C executable cmTC_c9011
+Run Build Command:"/usr/local/bin/ninja" "cmTC_b8d38"
+[1/2] Building C object CMakeFiles/cmTC_b8d38.dir/testCCompiler.c.o
+[2/2] Linking C executable cmTC_b8d38
 
 
 Detecting C compiler ABI info compiled with the following output:
 Change Dir: /Users/Amit/Desktop/Python/ML/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/local/bin/ninja" "cmTC_ff8c2"
-[1/2] Building C object CMakeFiles/cmTC_ff8c2.dir/CMakeCCompilerABI.c.o
-[2/2] Linking C executable cmTC_ff8c2
+Run Build Command:"/usr/local/bin/ninja" "cmTC_4d5d9"
+[1/2] Building C object CMakeFiles/cmTC_4d5d9.dir/CMakeCCompilerABI.c.o
+[2/2] Linking C executable cmTC_4d5d9
 Apple LLVM version 10.0.0 (clang-1000.11.45.5)
 Target: x86_64-apple-darwin18.2.0
 Thread model: posix
 InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin
- "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch x86_64 -macosx_version_min 10.14.0 -syslibroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk -o cmTC_ff8c2 -L/usr/local/opt/llvm/lib -search_paths_first -headerpad_max_install_names -v CMakeFiles/cmTC_ff8c2.dir/CMakeCCompilerABI.c.o -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/10.0.0/lib/darwin/libclang_rt.osx.a
+ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch x86_64 -macosx_version_min 10.14.0 -syslibroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk -o cmTC_4d5d9 -L/usr/local/opt/llvm/lib -search_paths_first -headerpad_max_install_names -v CMakeFiles/cmTC_4d5d9.dir/CMakeCCompilerABI.c.o -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/10.0.0/lib/darwin/libclang_rt.osx.a
 @(#)PROGRAM:ld  PROJECT:ld64-409.12
 BUILD 17:47:51 Sep 25 2018
 configured to support archs: armv6 armv7 armv7s arm64 i386 x86_64 x86_64h armv6m armv7k armv7m armv7em arm64e arm64_32
@@ -58,14 +58,14 @@ Parsed C implicit link information from above output:
   link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
   ignore line: [Change Dir: /Users/Amit/Desktop/Python/ML/build/CMakeFiles/CMakeTmp]
   ignore line: []
-  ignore line: [Run Build Command:"/usr/local/bin/ninja" "cmTC_ff8c2"]
-  ignore line: [[1/2] Building C object CMakeFiles/cmTC_ff8c2.dir/CMakeCCompilerABI.c.o]
-  ignore line: [[2/2] Linking C executable cmTC_ff8c2]
+  ignore line: [Run Build Command:"/usr/local/bin/ninja" "cmTC_4d5d9"]
+  ignore line: [[1/2] Building C object CMakeFiles/cmTC_4d5d9.dir/CMakeCCompilerABI.c.o]
+  ignore line: [[2/2] Linking C executable cmTC_4d5d9]
   ignore line: [Apple LLVM version 10.0.0 (clang-1000.11.45.5)]
   ignore line: [Target: x86_64-apple-darwin18.2.0]
   ignore line: [Thread model: posix]
   ignore line: [InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin]
-  link line: [ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch x86_64 -macosx_version_min 10.14.0 -syslibroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk -o cmTC_ff8c2 -L/usr/local/opt/llvm/lib -search_paths_first -headerpad_max_install_names -v CMakeFiles/cmTC_ff8c2.dir/CMakeCCompilerABI.c.o -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/10.0.0/lib/darwin/libclang_rt.osx.a]
+  link line: [ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch x86_64 -macosx_version_min 10.14.0 -syslibroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk -o cmTC_4d5d9 -L/usr/local/opt/llvm/lib -search_paths_first -headerpad_max_install_names -v CMakeFiles/cmTC_4d5d9.dir/CMakeCCompilerABI.c.o -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/10.0.0/lib/darwin/libclang_rt.osx.a]
     arg [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld] ==> ignore
     arg [-demangle] ==> ignore
     arg [-lto_library] ==> ignore, skip following value
@@ -78,12 +78,12 @@ Parsed C implicit link information from above output:
     arg [-syslibroot] ==> ignore
     arg [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk] ==> ignore
     arg [-o] ==> ignore
-    arg [cmTC_ff8c2] ==> ignore
+    arg [cmTC_4d5d9] ==> ignore
     arg [-L/usr/local/opt/llvm/lib] ==> dir [/usr/local/opt/llvm/lib]
     arg [-search_paths_first] ==> ignore
     arg [-headerpad_max_install_names] ==> ignore
     arg [-v] ==> ignore
-    arg [CMakeFiles/cmTC_ff8c2.dir/CMakeCCompilerABI.c.o] ==> ignore
+    arg [CMakeFiles/cmTC_4d5d9.dir/CMakeCCompilerABI.c.o] ==> ignore
     arg [-lSystem] ==> lib [System]
     arg [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/10.0.0/lib/darwin/libclang_rt.osx.a] ==> lib [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/10.0.0/lib/darwin/libclang_rt.osx.a]
   Library search paths: [;/usr/local/opt/llvm/lib;/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk/usr/lib]
@@ -104,9 +104,9 @@ Parsed C implicit link information from above output:
 Detecting C [-std=c11] compiler features compiled with the following output:
 Change Dir: /Users/Amit/Desktop/Python/ML/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/local/bin/ninja" "cmTC_540a0"
-[1/2] Building C object CMakeFiles/cmTC_540a0.dir/feature_tests.c.o
-[2/2] Linking C executable cmTC_540a0
+Run Build Command:"/usr/local/bin/ninja" "cmTC_45d1e"
+[1/2] Building C object CMakeFiles/cmTC_45d1e.dir/feature_tests.c.o
+[2/2] Linking C executable cmTC_45d1e
 
 
     Feature record: C_FEATURE:1c_function_prototypes
@@ -118,9 +118,9 @@ Run Build Command:"/usr/local/bin/ninja" "cmTC_540a0"
 Detecting C [-std=c99] compiler features compiled with the following output:
 Change Dir: /Users/Amit/Desktop/Python/ML/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/local/bin/ninja" "cmTC_0eea9"
-[1/2] Building C object CMakeFiles/cmTC_0eea9.dir/feature_tests.c.o
-[2/2] Linking C executable cmTC_0eea9
+Run Build Command:"/usr/local/bin/ninja" "cmTC_7c9ff"
+[1/2] Building C object CMakeFiles/cmTC_7c9ff.dir/feature_tests.c.o
+[2/2] Linking C executable cmTC_7c9ff
 
 
     Feature record: C_FEATURE:1c_function_prototypes
@@ -132,9 +132,9 @@ Run Build Command:"/usr/local/bin/ninja" "cmTC_0eea9"
 Detecting C [-std=c90] compiler features compiled with the following output:
 Change Dir: /Users/Amit/Desktop/Python/ML/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/local/bin/ninja" "cmTC_e7683"
-[1/2] Building C object CMakeFiles/cmTC_e7683.dir/feature_tests.c.o
-[2/2] Linking C executable cmTC_e7683
+Run Build Command:"/usr/local/bin/ninja" "cmTC_ef5b1"
+[1/2] Building C object CMakeFiles/cmTC_ef5b1.dir/feature_tests.c.o
+[2/2] Linking C executable cmTC_ef5b1
 
 
     Feature record: C_FEATURE:1c_function_prototypes
@@ -144,22 +144,22 @@ Run Build Command:"/usr/local/bin/ninja" "cmTC_e7683"
 Determining if the CXX compiler works passed with the following output:
 Change Dir: /Users/Amit/Desktop/Python/ML/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/local/bin/ninja" "cmTC_b22f6"
-[1/2] Building CXX object CMakeFiles/cmTC_b22f6.dir/testCXXCompiler.cxx.o
-[2/2] Linking CXX executable cmTC_b22f6
+Run Build Command:"/usr/local/bin/ninja" "cmTC_81666"
+[1/2] Building CXX object CMakeFiles/cmTC_81666.dir/testCXXCompiler.cxx.o
+[2/2] Linking CXX executable cmTC_81666
 
 
 Detecting CXX compiler ABI info compiled with the following output:
 Change Dir: /Users/Amit/Desktop/Python/ML/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/local/bin/ninja" "cmTC_f0fb4"
-[1/2] Building CXX object CMakeFiles/cmTC_f0fb4.dir/CMakeCXXCompilerABI.cpp.o
-[2/2] Linking CXX executable cmTC_f0fb4
+Run Build Command:"/usr/local/bin/ninja" "cmTC_9812b"
+[1/2] Building CXX object CMakeFiles/cmTC_9812b.dir/CMakeCXXCompilerABI.cpp.o
+[2/2] Linking CXX executable cmTC_9812b
 Apple LLVM version 10.0.0 (clang-1000.11.45.5)
 Target: x86_64-apple-darwin18.2.0
 Thread model: posix
 InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin
- "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch x86_64 -macosx_version_min 10.14.0 -syslibroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk -o cmTC_f0fb4 -L/usr/local/opt/llvm/lib -search_paths_first -headerpad_max_install_names -v CMakeFiles/cmTC_f0fb4.dir/CMakeCXXCompilerABI.cpp.o -lc++ -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/10.0.0/lib/darwin/libclang_rt.osx.a
+ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch x86_64 -macosx_version_min 10.14.0 -syslibroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk -o cmTC_9812b -L/usr/local/opt/llvm/lib -search_paths_first -headerpad_max_install_names -v CMakeFiles/cmTC_9812b.dir/CMakeCXXCompilerABI.cpp.o -lc++ -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/10.0.0/lib/darwin/libclang_rt.osx.a
 @(#)PROGRAM:ld  PROJECT:ld64-409.12
 BUILD 17:47:51 Sep 25 2018
 configured to support archs: armv6 armv7 armv7s arm64 i386 x86_64 x86_64h armv6m armv7k armv7m armv7em arm64e arm64_32
@@ -174,14 +174,14 @@ Parsed CXX implicit link information from above output:
   link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
   ignore line: [Change Dir: /Users/Amit/Desktop/Python/ML/build/CMakeFiles/CMakeTmp]
   ignore line: []
-  ignore line: [Run Build Command:"/usr/local/bin/ninja" "cmTC_f0fb4"]
-  ignore line: [[1/2] Building CXX object CMakeFiles/cmTC_f0fb4.dir/CMakeCXXCompilerABI.cpp.o]
-  ignore line: [[2/2] Linking CXX executable cmTC_f0fb4]
+  ignore line: [Run Build Command:"/usr/local/bin/ninja" "cmTC_9812b"]
+  ignore line: [[1/2] Building CXX object CMakeFiles/cmTC_9812b.dir/CMakeCXXCompilerABI.cpp.o]
+  ignore line: [[2/2] Linking CXX executable cmTC_9812b]
   ignore line: [Apple LLVM version 10.0.0 (clang-1000.11.45.5)]
   ignore line: [Target: x86_64-apple-darwin18.2.0]
   ignore line: [Thread model: posix]
   ignore line: [InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin]
-  link line: [ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch x86_64 -macosx_version_min 10.14.0 -syslibroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk -o cmTC_f0fb4 -L/usr/local/opt/llvm/lib -search_paths_first -headerpad_max_install_names -v CMakeFiles/cmTC_f0fb4.dir/CMakeCXXCompilerABI.cpp.o -lc++ -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/10.0.0/lib/darwin/libclang_rt.osx.a]
+  link line: [ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch x86_64 -macosx_version_min 10.14.0 -syslibroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk -o cmTC_9812b -L/usr/local/opt/llvm/lib -search_paths_first -headerpad_max_install_names -v CMakeFiles/cmTC_9812b.dir/CMakeCXXCompilerABI.cpp.o -lc++ -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/10.0.0/lib/darwin/libclang_rt.osx.a]
     arg [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld] ==> ignore
     arg [-demangle] ==> ignore
     arg [-lto_library] ==> ignore, skip following value
@@ -194,12 +194,12 @@ Parsed CXX implicit link information from above output:
     arg [-syslibroot] ==> ignore
     arg [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk] ==> ignore
     arg [-o] ==> ignore
-    arg [cmTC_f0fb4] ==> ignore
+    arg [cmTC_9812b] ==> ignore
     arg [-L/usr/local/opt/llvm/lib] ==> dir [/usr/local/opt/llvm/lib]
     arg [-search_paths_first] ==> ignore
     arg [-headerpad_max_install_names] ==> ignore
     arg [-v] ==> ignore
-    arg [CMakeFiles/cmTC_f0fb4.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
+    arg [CMakeFiles/cmTC_9812b.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
     arg [-lc++] ==> lib [c++]
     arg [-lSystem] ==> lib [System]
     arg [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/10.0.0/lib/darwin/libclang_rt.osx.a] ==> lib [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/10.0.0/lib/darwin/libclang_rt.osx.a]
@@ -221,9 +221,9 @@ Parsed CXX implicit link information from above output:
 Detecting CXX [-std=c++1z] compiler features compiled with the following output:
 Change Dir: /Users/Amit/Desktop/Python/ML/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/local/bin/ninja" "cmTC_3151a"
-[1/2] Building CXX object CMakeFiles/cmTC_3151a.dir/feature_tests.cxx.o
-[2/2] Linking CXX executable cmTC_3151a
+Run Build Command:"/usr/local/bin/ninja" "cmTC_05783"
+[1/2] Building CXX object CMakeFiles/cmTC_05783.dir/feature_tests.cxx.o
+[2/2] Linking CXX executable cmTC_05783
 
 
     Feature record: CXX_FEATURE:1cxx_aggregate_default_initializers
@@ -288,9 +288,9 @@ Run Build Command:"/usr/local/bin/ninja" "cmTC_3151a"
 Detecting CXX [-std=c++14] compiler features compiled with the following output:
 Change Dir: /Users/Amit/Desktop/Python/ML/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/local/bin/ninja" "cmTC_1b73d"
-[1/2] Building CXX object CMakeFiles/cmTC_1b73d.dir/feature_tests.cxx.o
-[2/2] Linking CXX executable cmTC_1b73d
+Run Build Command:"/usr/local/bin/ninja" "cmTC_d001f"
+[1/2] Building CXX object CMakeFiles/cmTC_d001f.dir/feature_tests.cxx.o
+[2/2] Linking CXX executable cmTC_d001f
 
 
     Feature record: CXX_FEATURE:1cxx_aggregate_default_initializers
@@ -355,9 +355,9 @@ Run Build Command:"/usr/local/bin/ninja" "cmTC_1b73d"
 Detecting CXX [-std=c++11] compiler features compiled with the following output:
 Change Dir: /Users/Amit/Desktop/Python/ML/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/local/bin/ninja" "cmTC_7447f"
-[1/2] Building CXX object CMakeFiles/cmTC_7447f.dir/feature_tests.cxx.o
-[2/2] Linking CXX executable cmTC_7447f
+Run Build Command:"/usr/local/bin/ninja" "cmTC_4d863"
+[1/2] Building CXX object CMakeFiles/cmTC_4d863.dir/feature_tests.cxx.o
+[2/2] Linking CXX executable cmTC_4d863
 
 
     Feature record: CXX_FEATURE:0cxx_aggregate_default_initializers
@@ -422,9 +422,9 @@ Run Build Command:"/usr/local/bin/ninja" "cmTC_7447f"
 Detecting CXX [-std=c++98] compiler features compiled with the following output:
 Change Dir: /Users/Amit/Desktop/Python/ML/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/local/bin/ninja" "cmTC_40314"
-[1/2] Building CXX object CMakeFiles/cmTC_40314.dir/feature_tests.cxx.o
-[2/2] Linking CXX executable cmTC_40314
+Run Build Command:"/usr/local/bin/ninja" "cmTC_76f89"
+[1/2] Building CXX object CMakeFiles/cmTC_76f89.dir/feature_tests.cxx.o
+[2/2] Linking CXX executable cmTC_76f89
 
 
     Feature record: CXX_FEATURE:0cxx_aggregate_default_initializers

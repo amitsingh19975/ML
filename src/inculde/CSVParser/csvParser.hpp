@@ -32,6 +32,8 @@ namespace ML{
         while(getline(f,data)) {
             this->getData(data);
         }
+        this->_cols = this->_data.size();
+        this->_rows = this->_data[0]->size();
     }
 
     void CSV::getHeader(std::string& headers){
@@ -64,9 +66,9 @@ namespace ML{
             int i = 0;
             while(getline(os,d,',')){
                 if(d[0] == '\"'){
-                    dynamic_cast<Vec<std::string>*>(this->_data[i++].get())->push_back(d.substr(1,d.size()-2));
+                    static_cast<Vec<std::string>*>(this->_data[i++].get())->push_back(d.substr(1,d.size()-2));
                 }else{
-                    dynamic_cast<Vec<double>*>(this->_data[i++].get())->push_back(std::stod(d));
+                    static_cast<Vec<double>*>(this->_data[i++].get())->push_back(std::stod(d));
                 }
             }
         }

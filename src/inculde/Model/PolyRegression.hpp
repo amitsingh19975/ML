@@ -25,8 +25,8 @@ namespace ML{
 
         double rSquared();
         std::vector<double> getCoeff() const noexcept;
-        void train(Frame & xTrainData, Frame & yTrainData) override;
-        void test(Frame & xTestData, Frame & yTestData) override;
+        void train(Frame* xTrainData, Frame* yTrainData) override;
+        void test(Frame* xTrainData, Frame* yTrainData) override;
     protected:
         matrix<double>  _x;
         matrix<double>  _y;
@@ -35,7 +35,7 @@ namespace ML{
         bool            _isTrained{false};
 
         void fit();
-        virtual void convertToUblasMatrix(Frame & vec,matrix<double> &m,bool isY = true);
+        virtual void convertToUblasMatrix(Frame* v,matrix<double> &m,bool isY = true);
         void transposeMatrix(matrix<double>& m);
         bool inverseMatrix(matrix<double>& m, matrix<double>& inv);
         void calWeights();
@@ -60,16 +60,15 @@ namespace ML{
         calCoeff();
     }
 
-    void PolyRegression::convertToUblasMatrix(Frame & v,matrix<double> &m,bool isY){
-        auto vec = Frame::cast(v[0]);
+    void PolyRegression::convertToUblasMatrix(Frame* v,matrix<double> &m,bool isY){
         if(isY){
-            for(size_t i = 0; i < this->_y.size1(); i++){
-                m(i,0) = vec->_data[i];
+            for(size_t i = 0; i < m.size1(); i++){
+                m(i,0) = v->at(i,0);
             }
         }else{
-            for(size_t i = 0; i < this->_x.size1(); i++){
-                for(size_t j = 0; j < this->_x.size2(); j++){
-                    m(i,j) = std::pow(vec->_data[i],j); 
+            for(size_t i = 0; i < m.size1(); i++){
+                for(size_t j = 0; j < m.size2(); j++){
+                    m(i,j) = std::pow(v->at(i,0),j); 
                 }
             }
         }
@@ -155,11 +154,11 @@ namespace ML{
             }
         }
     }
-    void PolyRegression::test(Frame & xTestData, Frame & yTestData){
+    void PolyRegression::test(Frame* xTestData, Frame* yTestData){
         if(!this->_isTrained) return;
 
-        auto x = Frame::cast(xTestData[0]);
-        auto y = Frame::cast(yTestData[0]);
+        auto x = Frame::cast(xTestData->at(0));
+        auto y = Frame::cast(yTestData->at(0));
 
         matrix<double> xTest(x->size(),1),yTest(y->size(),1);
         convertToUblasMatrix(xTestData,xTest);
@@ -178,10 +177,9 @@ namespace ML{
         for(int i = 0; i < xTest.size1(); i++) this->_errorInPredic(i,0) = (this->_predic(i,0) - yTest(i,0));
 
     }
-    void PolyRegression::train(Frame & xTrainData, Frame & yTrainData){
-        
-        auto x = Frame::cast(xTrainData[0]);
-        auto y = Frame::cast(yTrainData[0]);
+    void PolyRegression::train(Frame* xTrainData, Frame* yTrainData){
+        auto x = Frame::cast(xTrainData->at(0));
+        auto y = Frame::cast(yTrainData->at(0));
         
         this->_x.resize(x->size(), this->_dimension);
         this->_y.resize(y->size(), 1);
