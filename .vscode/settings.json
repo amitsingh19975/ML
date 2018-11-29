@@ -16,6 +16,8 @@
         "limits": "cpp",
         "vector": "cpp",
         "tuple": "cpp",
-        "ostream": "cpp"
+        "ostream": "cpp",
+        "iostream": "cpp",
+        "iterator": "cpp"
     }
 }
