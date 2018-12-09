@@ -33,7 +33,7 @@ namespace ML{
             this->getData(data);
         }
         this->_cols = this->_data.size();
-        this->_rows = this->_data[0]->size();
+        this->_rows = this->_data.at(0)->size();
     }
 
     void CSV::getHeader(std::string& headers){
@@ -41,10 +41,12 @@ namespace ML{
         std::string header;
 
         while(getline(os,header,',')){
-            if(header == "\"")
+            if(header[0] == '\"'){
                 this->_headers.push_back(header.substr(1,header.size()-2));
-            else
+            }
+            else{
                 this->_headers.push_back(header);
+            }
         }
     }
 
@@ -54,7 +56,7 @@ namespace ML{
         if(this->_data.size() == 0){
             int i = 0;
             while(getline(os,d,',')){
-                if(d[0] == '\"'){
+                if(d.at(0) == '\"'){
                     std::unique_ptr<Series> series{new Vec<std::string>(this->_headers[i++],"string", {d.substr(1,d.size()-2)})};
                     this->_data.push_back(std::move(series));
                 }else{
@@ -65,7 +67,7 @@ namespace ML{
         }else{
             int i = 0;
             while(getline(os,d,',')){
-                if(d[0] == '\"'){
+                if(d.at(0) == '\"'){
                     static_cast<Vec<std::string>*>(this->_data[i++].get())->push_back(d.substr(1,d.size()-2));
                 }else{
                     static_cast<Vec<double>*>(this->_data[i++].get())->push_back(std::stod(d));

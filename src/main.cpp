@@ -7,12 +7,12 @@ using namespace std;
 
 int main(){
     // cout<<setprecision(numeric_limits<double>::max_digits10);
-    string trainF = "/Users/Amit/Desktop/Python/ML/test/train";
+    string trainF = "/Users/Amit/Desktop/Python/ML/test/kyphosis";
     string testF = "/Users/Amit/Desktop/Python/ML/test/test";
     CSV frameTrain(trainF);
-    CSV frameTest(testF);
+    // CSV frameTest(testF);
     // frameTrain.labelToNumber(0);
-    // frameTrain[0]->print();
+    // frameTrain.at(0)->print();
     // CSV frameTest(test);
     // Frame frameTrainX(std::move(frameTrain.dropCol(0)),"Train X");
     // Frame frameTrainY(std::move(frameTrain.dropCol(0)),"Train Y");
@@ -29,10 +29,10 @@ int main(){
     // Frame frameTrain(trainD);
     // frameTrain.print();
     // f.print();
-    frameTrain.normalize();
-    frameTest.normalize();
-    // frameTrain.labelToNumber(0);
-    // auto [train, test] = frameTrain.split(80,0);
+    // frameTrain.normalize();
+    frameTrain.labelToNumber(0);
+    // frameTest.normalize();
+    auto [train, test] = frameTrain.split(50,0);
     // frameTrainX.normalize();
     // frameTrainY.normalize();
     // frameTestX.normalize();
@@ -41,18 +41,21 @@ int main(){
     // csv.print();
     LogisticRegression k;
     // frameTrain.print(3);
-    auto frameTrainX = std::move(frameTrain.colSlice(1));
-    cout<<"->";
-    auto frameTrainY = std::move(frameTrain.colSlice(0));
+    // auto frameTrainX = std::move(frameTrain.colSlice(1));
+    // auto frameTrainY = std::move(frameTrain.colSlice(0));
     // auto frameTestX = std::move(frameTest.colSlice(1));
     // auto frameTestY = std::move(frameTest.colSlice(0));
-    // frameTrainY->print();
-    // auto frameTrainX = std::move(train->colSlice(1));
-    // auto frameTrainY = std::move(train->colSlice(0));
-    // auto frameTestX = std::move(test->colSlice(1));
-    // auto frameTestY = std::move(test->colSlice(0));
-    // k.train(frameTrainX.get(),frameTrainY.get());
-    // k.test(frameTestX.get(),frameTestY.get());
-    // cout<<(k._predic)<<'\n';
+    // train->print(1);
+
+    auto frameTrainY = std::move(train->colSlice({"Kyphosis"}));
+    auto frameTrainX = std::move(train->colSlice({"Age","Number","Start"}));
+    auto frameTestX = std::move(test->colSlice({"Age","Number","Start"}));
+    auto frameTestY = std::move(test->colSlice({"Kyphosis"}));
+    // test->print(1);
+    // frameTrainX->print(4);
+    k.train(frameTrainX.get(),frameTrainY.get());
+    k.test(frameTestX.get(),frameTestY.get());
+    // cout<<k._coeff<<'\n';
+    k.confusionMatrix();
     return 0;
 }

@@ -19,15 +19,15 @@ namespace ML{
         Frame(){}
         Frame(size_t row, size_t col):_rows(row),_cols(col){}
         Frame(std::vector<std::string>& h): _headers(h){}
-        Frame(std::vector<std::unique_ptr<Series>> data):_cols(data.size()),_rows(data[0]->size()),_data(std::move(data)){}
+        Frame(std::vector<std::unique_ptr<Series>> data):_cols(data.size()),_rows(data.at(0)->size()),_data(std::move(data)){}
         Frame(std::unique_ptr<Series> data, std::string header = ""){
             this->_data.push_back(std::move(data));
             this->_headers.push_back(header);
             this->_cols = this->_data.size();
-            this->_rows = this->_data[0]->size();
+            this->_rows = this->_data.at(0)->size();
         }
         Frame(std::vector<std::unique_ptr<Series>> data,
-        std::vector<std::string> _header):_cols(data.size()),_rows(data[0]->size()),_data(std::move(data)),_headers(_header){}
+        std::vector<std::string> _header):_cols(data.size()),_rows(data.at(0)->size()),_data(std::move(data)),_headers(_header){}
 
         template<typename T>
         Frame(std::vector<std::vector<T>>& data);
@@ -38,6 +38,7 @@ namespace ML{
 
         void print(int size = -1, int ind = 5) const noexcept;
         bool addSeries(std::unique_ptr<Series> series);
+        bool addSeries(Series* series);
         template<typename T> bool addVec(Vec<T>* vec);
         template<typename U = double> U at(int i, int j);
         Series* at(int i);
@@ -45,19 +46,21 @@ namespace ML{
         void numberToLabel(int idx);
         void apply(std::function<double(double)> func);
 
-        Series* operator[](int i){return this->_data[i].get();}
+        Series* operator[](int i){return this->_data.at(i).get();}
         size_t size() const noexcept{return this->_data.size();}
 
         std::unique_ptr<Series> dropCol(int idx); 
         std::unique_ptr<Frame> colSlice(size_t start, size_t end = std::numeric_limits<size_t>::max()); 
+        std::unique_ptr<Frame> colSlice(std::vector<int> l); 
+        std::unique_ptr<Frame> colSlice(std::initializer_list<std::string> l); 
         std::vector<std::unique_ptr<Series>> dropRow(int idx); 
         std::pair<Frame*, Frame*> split(float percentage = 30, bool randomized = true); 
         static void randomize(Frame* frame, int iteration = 50); 
 
-        double mean(int col);
-        double std(int col);
-        double variance(int col);
-        double median(int col);
+        double mean(int col){return this->at(col)->mean();}
+        double std(int col){return this->at(col)->std();}
+        double variance(int col){return this->at(col)->variance();}
+        double median(int col){return this->at(col)->median();}
         void normalize(double val = 0);
         
         template<typename T = double>
@@ -76,7 +79,7 @@ namespace ML{
         void updateSize() noexcept{
             this->_cols = this->_data.size();
             if(this->_cols != 0)
-                this->_rows = this->_data[0]->size();
+                this->_rows = this->_data.at(0)->size();
             else
                 this->_rows = 0;
         }
@@ -105,7 +108,7 @@ namespace ML{
             std::cerr<< "Line: " + std::to_string(__LINE__)<<'\n';
             exit(1);
         }
-        return this->_data[i].get();
+        return this->_data.at(i).get();
     }
 
     template<>
@@ -121,7 +124,7 @@ namespace ML{
             std::cerr<< "Line: " + std::to_string(__LINE__)<<'\n';
             return;
         }
-        size = size < - 1 || size > this->_data[0]->size() ? this->_data[0]->size() : size;
+        size = size < - 1 || size > this->_data.at(0)->size() ? this->_data.at(0)->size() : size;
 
         std::vector<int> lenghtOfHeaderString(this->_headers.size());
         int i = 0;
@@ -137,14 +140,14 @@ namespace ML{
 
         for(int i = 0; i < size; i++){
             for(int j = 0; j < this->_data.size();j++){
-                auto d = this->_data[j].get();
+                auto d = this->_data.at(j).get();
                 if(d->_type == "string"){
                     Vec<std::string> t = *cast<std::string>(d);
-                    std::cout<<t[i];
+                    std::cout<<t.at(i);
                     indent(t[i],lenghtOfHeaderString,j,ind);
                 }else{
                     Vec<double> t = *cast<double>(d);
-                    std::cout<<t[i];
+                    std::cout<<t.at(i);
                     indent(t[i],lenghtOfHeaderString,j,ind);
                 }
             }
@@ -153,7 +156,7 @@ namespace ML{
     } 
 
     std::unique_ptr<Series> Frame::dropCol(int idx){
-        if(isEmpty()|| this->_cols <= idx || idx < 0) {
+        if(isEmpty()|| this->_cols < idx|| idx < 0) {
             std::cerr<< "Line: " + std::to_string(__LINE__)<<'\n';
             exit(1);
         }
@@ -169,20 +172,50 @@ namespace ML{
             return {};
         }
         // std::vector<std::unique_ptr<Series>> temp;
-        // for(int i = 0; i < this->_data[0]->size(); i++){
+        // for(int i = 0; i < this->_data.at(0)->size(); i++){
         //     std::unique_ptr<Series> s;
-        //     if(this->_data[i]->_type == "string") {
-        //         auto t = this->cast<std::string>(this->_data[i].get());
-        //         temp.emplace_back(std::make_unique<Vec<std::string>>(t->_header,"string",t[i]));
+        //     if(this->_data.at(i)->_type == "string") {
+        //         auto t = this->cast<std::string>(this->_data.at(i).get());
+        //         temp.emplace_back(std::make_unique<Vec<std::string>>(t->_header,"string",t.at(i)));
         //     }else{
-        //         auto t = this->cast(this->_data[i].get());
-        //         temp.emplace_back(std::make_unique<Vec<double>>(t->_header,"double",t[i]));
+        //         auto t = this->cast(this->_data.at(i).get());
+        //         temp.emplace_back(std::make_unique<Vec<double>>(t->_header,"double",t.at(i)));
         //     }  
         // }
         this->updateSize();
         return {};
     }
 
+    bool Frame::addSeries(Series* series){
+        if(isEmpty() || series->size() != this->_rows) {
+            std::cerr<< "Line: " + std::to_string(__LINE__)<<'\n';
+            return false;
+        }
+        if( series == nullptr
+            ||((series)->_type != "string" && (series)->_type != "double")
+            || (series)->size() == 0
+            || (series)->_header == "") return false;
+        if((series)->_type == "string" && Frame::cast<std::string>(series) == nullptr) return false;
+        if((series)->_type == "double" && Frame::cast(series) == nullptr) return false;
+
+        if(series->_type == "string"){
+            std::unique_ptr<Series> s(new Vec<std::string>(series->_header,"string"));
+            for(int i = 0; i < series->size(); i++){
+                s->push_s(series->atS(i));
+            }
+            this->_headers.push_back((s)->_header);
+            this->_data.push_back(std::move(s));
+        }else{
+            std::unique_ptr<Series> s(new Vec<double>(series->_header,"double"));
+            for(int i = 0; i < series->size(); i++){
+                s->push_d(series->at(i));
+            }
+            this->_headers.push_back((s)->_header);
+            this->_data.push_back(std::move(s));
+        }
+        this->updateSize();
+        return true;
+    }
     bool Frame::addSeries(std::unique_ptr<Series> series){
         if(isEmpty()) {
             std::cerr<< "Line: " + std::to_string(__LINE__)<<'\n';
@@ -272,8 +305,8 @@ namespace ML{
 
         int j = 0;
         for(size_t i = 0; i < this->_data[idx]->size(); i++){
-            if(auto it = temp.find(oldColVec->_data[i]); it != temp.end()){
-                newColVec->_data[i] = it->second; 
+            if(auto it = temp.find(oldColVec->_data.at(i)); it != temp.end()){
+                newColVec->_data.at(i) = it->second; 
             }
         }
         this->_data[idx] = std::move(newCol);
@@ -289,7 +322,7 @@ namespace ML{
                 double max = v->max();
                 double min = v->min();
                 v->apply([&](double el){
-                    return (max - el) / (max - min);
+                    return (el - max) / (max - min);
                 });
             }
         }else{
@@ -315,17 +348,16 @@ namespace ML{
         _train = std::make_unique<Frame>(this->_headers);
         _test = std::make_unique<Frame>(this->_headers);
 
-
         for(size_t i = 0; i < this->_cols; i++){
-            if(this->_data[i]->_type == "string"){
-                std::unique_ptr<Series> temp(new Vec<std::string>(this->_headers[i],"string"));
+            if(this->_data.at(i)->_type == "string"){
+                std::unique_ptr<Series> temp(new Vec<std::string>(this->_headers.at(i),"string"));
                 for(size_t j = 0; j < idx; j++){
                     temp->push_s(this->at<std::string>(j,i));
                 }
                 temp->_labelMap = this->at(i)->_labelMap;
                 _train->_data.push_back(std::move(temp));
             }else{
-                std::unique_ptr<Series> temp(new Vec<double>(this->_headers[i],"double"));
+                std::unique_ptr<Series> temp(new Vec<double>(this->_headers.at(i),"double"));
                 for(size_t j = 0; j < idx; j++){
                     temp->push_d(this->at(j,i));
                 }
@@ -333,19 +365,20 @@ namespace ML{
                 _train->_data.push_back(std::move(temp));
             }
             _train->_cols = _train->_data.size();
-            _train->_rows = _train->_data[0]->size();
+            _train->_rows = _train->_data.at(0)->size();
         }
         for(size_t i = 0; i < this->_cols; i++){
-            if(this->_data[i]->_type == "string"){
-                std::unique_ptr<Series> temp(new Vec<std::string>(this->_headers[i],"string"));
+            if(this->_data.at(i)->_type == "string"){
+                std::unique_ptr<Series> temp(new Vec<std::string>(this->_headers.at(i),"string"));
                 for(size_t j = idx; j < this->_rows; j++){
                     temp->push_s(this->at<std::string>(j,i));
+                    // std::cout<<j<<'\n';
                 }
                 temp->_labelMap = this->at(i)->_labelMap;
                 _test->_data.push_back(std::move(temp));
             }else{
-                std::unique_ptr<Series> temp(new Vec<double>(this->_headers[i],"double"));
-                for(size_t j = 0; j < idx; j++){
+                std::unique_ptr<Series> temp(new Vec<double>(this->_headers.at(i),"double"));
+                for(size_t j = idx; j < this->_rows; j++){
                     temp->push_d(this->at(j,i));
                 }
                 temp->_labelMap = this->at(i)->_labelMap;
@@ -391,15 +424,59 @@ namespace ML{
         }
         std::unique_ptr<Frame> f(new Frame(this->_rows,std::min(end,this->_cols) - start));
         if(end == std::numeric_limits<size_t>::max()){
-            while(this->_cols > start ){
-                if(!f->addSeries(std::move(this->dropCol(start++)))) break;
+            size_t s = start;
+            while(this->_cols > s ){
+                if(!f->addSeries(std::move(this->dropCol(start)))) break;
             }
         }else{
-            for(size_t i = start; i < std::min(end,this->_cols); i++){
-                if(!f->addSeries(std::move(this->dropCol(i)))) break;
+            size_t s = start;
+            while(s++ != end ){
+                if(!f->addSeries(std::move(this->dropCol(start)))) break;
             }
         }
         return std::move(f);
+    } 
+    std::unique_ptr<Frame> Frame::colSlice(std::vector<int> l){
+        
+        for(auto num: l){
+            if(num >= this->_cols || num <0){
+                std::cerr<< "Line: " + std::to_string(__LINE__)<<'\n';
+            }
+        }
+        if(isEmpty()) {
+            std::cerr<< "Line: " + std::to_string(__LINE__)<<'\n';
+            exit(1);
+        }
+        std::unique_ptr<Frame> f(new Frame(this->_rows, l.size()));
+        for(auto i : l){
+            f->addSeries(this->at(i));
+        }
+        std::sort(l.begin(),l.end(),std::greater<int>());
+
+        int j = 0;
+        for(auto i : l){
+            this->dropCol(i);
+        }
+        
+        return std::move(f);
+    } 
+    std::unique_ptr<Frame> Frame::colSlice(std::initializer_list<std::string> l){
+        std::vector<int> v;
+        for(std::string const& num: l){
+            auto it = std::find(this->_headers.begin(),this->_headers.end(),num.c_str());
+            if(it == this->_headers.end()){
+                std::cerr<< "Line: " + std::to_string(__LINE__)<<'\n';
+                exit(1);
+            }else{
+                v.push_back(std::distance(this->_headers.begin(),it));
+            }
+        }
+        if(isEmpty()) {
+            std::cerr<< "Line: " + std::to_string(__LINE__)<<'\n';
+            exit(1);
+        }
+        return std::move(colSlice(v));
+        return {};
     } 
 
     void Frame::apply(std::function<double(double)> func){
@@ -408,8 +485,8 @@ namespace ML{
             return;
         }
         for(int i = 0; i < this->_cols; i++){
-            if(this->_data[i]->_type != "string")
-                this->_data[i]->apply(func);
+            if(this->_data.at(i)->_type != "string")
+                this->_data.at(i)->apply(func);
         }
     }
 }

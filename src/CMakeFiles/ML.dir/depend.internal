@@ -5,6 +5,7 @@ src/CMakeFiles/ML.dir/main.cpp.o
  /Users/Amit/Desktop/Python/ML/src/inculde/CSVParser/csvParser.hpp
  /Users/Amit/Desktop/Python/ML/src/inculde/Frame/frame.hpp
  /Users/Amit/Desktop/Python/ML/src/inculde/Model/KMean.hpp
+ /Users/Amit/Desktop/Python/ML/src/inculde/Model/LinearRegression.hpp
  /Users/Amit/Desktop/Python/ML/src/inculde/Model/LogisticRegression.hpp
  /Users/Amit/Desktop/Python/ML/src/inculde/Model/PolyRegression.hpp
  /Users/Amit/Desktop/Python/ML/src/inculde/Model/core.hpp

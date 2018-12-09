@@ -18,6 +18,15 @@
         "tuple": "cpp",
         "ostream": "cpp",
         "iostream": "cpp",
-        "iterator": "cpp"
-    }
+        "iterator": "cpp",
+        "iosfwd": "cpp",
+        "string": "cpp",
+        "__functional_base": "cpp",
+        "array": "cpp",
+        "istream": "cpp",
+        "locale": "cpp",
+        "thread": "cpp",
+        "utility": "cpp"
+    },
+    "C_Cpp.configurationWarnings": "Disabled"
 }

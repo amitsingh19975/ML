@@ -6,14 +6,14 @@
 
 template<typename T>
 int partition(std::vector<T>& vec,int low, int high){
-    int p = low, r = high, x = vec[r], i = p - 1;
+    int p = low, r = high, x = vec.at(r), i = p - 1;
     for(int j = p; j <= r - 1; j++){
-        if(vec[j] <= x){
+        if(vec.at(j) <= x){
             i++;
-            std::swap(vec[i],vec[j]);
+            std::swap(vec.at(i),vec.at(j));
         }
     }
-    std::swap(vec[i + 1],vec[r]);
+    std::swap(vec[i + 1],vec.at(r));
     return i + 1;
 }
 

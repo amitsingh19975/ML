@@ -19,13 +19,13 @@ namespace ML{
     std::string to_string(T& num){
         std::string temp = std::to_string(num);
         int i = temp.size() - 1;
-        for(; i >= 0; i--) if(temp[i] != '0' || temp[i] == '.') break;
+        for(; i >= 0; i--) if(temp.at(i) != '0' || temp.at(i) == '.') break;
         return temp.substr(0,i);
     }
 
     template<typename T>
     void indent(T& num,std::vector<int>& lenghtOfHeaderString, int j, int in = 5){
-        in += ((int)lenghtOfHeaderString[j] - (int)to_string(num).size());
+        in += ((int)lenghtOfHeaderString.at(j) - (int)to_string(num).size());
         for(int i = 0; i < in; i++) std::cout<<' ';
     }
 
@@ -94,11 +94,11 @@ namespace ML{
         }
 
         double at(int i) override{
-            if constexpr(std::is_same_v<T,double>) return this->_data[i];
+            if constexpr(std::is_same_v<T,double>) return this->_data.at(i);
             else return 0;
         }
         std::string atS(int i)override{
-            if constexpr(std::is_same_v<T,std::string>) return this->_data[i];
+            if constexpr(std::is_same_v<T,std::string>) return this->_data.at(i);
             else return "";
         }
         
@@ -109,12 +109,12 @@ namespace ML{
             std::cout<<'\n';
             int size = numberOfData < 0 || numberOfData >= this->size() - 1? this->size(): numberOfData;
             for(int i = 0; i < size; i++){
-                std::cout<<this->_data[i]<<'\n';
+                std::cout<<this->_data.at(i)<<'\n';
             }
         }
 
         T& operator[](int i){
-            return (this->_data[i]);
+            return (this->_data.at(i));
         }
 
         double mean() final override{
@@ -135,7 +135,7 @@ namespace ML{
             else {
                 m = std::numeric_limits<double>::min();
                 for(int i = 0; i < this->_data.size();i++){
-                    if(m < this->_data[i]) m = this->_data[i];
+                    if(m < this->_data.at(i)) m = this->_data.at(i);
                 }
             }
             return m;  
@@ -146,7 +146,7 @@ namespace ML{
             else {
                 m = std::numeric_limits<double>::max();
                 for(int i = 0; i < this->_data.size();i++){
-                    if(m > this->_data[i]) m = this->_data[i];
+                    if(m > this->_data.at(i)) m = this->_data.at(i);
                 }
             }
             return m;
@@ -156,7 +156,7 @@ namespace ML{
             if(this->_data.empty()) return;
             if constexpr(std::is_same_v<T, std::string>) return; 
             else{
-                for(int i = this->_data.size() - 1; i >= 0; i--) this->_data[i] = func(this->_data[i]);
+                for(int i = this->_data.size() - 1; i >= 0; i--) this->_data.at(i) = func(this->_data.at(i));
             }
         }
 
@@ -167,7 +167,7 @@ namespace ML{
             else{
                 double m = this->mean();
                 for(int i = this->_data.size() - 1; i >= 0; i--){
-                    s += (this->_data[i] * this->_data[i]);
+                    s += (this->_data.at(i) * this->_data.at(i));
                 }
                 s /= this->size();
                 s -= m * m; 
@@ -201,7 +201,7 @@ namespace ML{
         }
 
         void swap(size_t i, size_t j) final override{
-            std::swap(this->_data[i], this->_data[j]);
+            std::swap(this->_data.at(i), this->_data.at(j));
         }
 
     };

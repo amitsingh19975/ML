@@ -4,6 +4,7 @@
 src/CMakeFiles/ML.dir/main.cpp.o: src/inculde/CSVParser/csvParser.hpp
 src/CMakeFiles/ML.dir/main.cpp.o: src/inculde/Frame/frame.hpp
 src/CMakeFiles/ML.dir/main.cpp.o: src/inculde/Model/KMean.hpp
+src/CMakeFiles/ML.dir/main.cpp.o: src/inculde/Model/LinearRegression.hpp
 src/CMakeFiles/ML.dir/main.cpp.o: src/inculde/Model/LogisticRegression.hpp
 src/CMakeFiles/ML.dir/main.cpp.o: src/inculde/Model/PolyRegression.hpp
 src/CMakeFiles/ML.dir/main.cpp.o: src/inculde/Model/core.hpp

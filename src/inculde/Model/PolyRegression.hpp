@@ -23,7 +23,7 @@ namespace ML{
 
         PolyRegression(int dimension = 1,bool ortho = false):_dimension(dimension + 1),_ortho(ortho),_coeff(dimension + 1, 1){}
 
-        double rSquared();
+        virtual double rSquared();
         std::vector<double> getCoeff() const noexcept;
         void train(Frame* xTrainData, Frame* yTrainData) override;
         void test(Frame* xTrainData, Frame* yTrainData) override;
@@ -38,8 +38,8 @@ namespace ML{
         virtual void convertToUblasMatrix(Frame* v,matrix<double> &m,bool isY = true);
         void transposeMatrix(matrix<double>& m);
         bool inverseMatrix(matrix<double>& m, matrix<double>& inv);
-        void calWeights();
-        void calCoeff();
+        virtual void calWeights();
+        virtual void calCoeff();
         void squareDueRegression();
         void squareDueResidual(double bxy,double mean);
         void totalSumOfSquare(double mean,double yy);
@@ -105,7 +105,7 @@ namespace ML{
 
     std::vector<double> PolyRegression::getCoeff() const noexcept{
         std::vector<double> v(this->_coeff.size1());
-        for(int i = 0; i < this->_coeff.size1(); i++) v[i] = this->_coeff(i,0);
+        for(int i = 0; i < this->_coeff.size1(); i++) v.at(i) = this->_coeff(i,0);
         return v;
     }
 

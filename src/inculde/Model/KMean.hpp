@@ -47,15 +47,15 @@ namespace ML{
                 size_t bestClus = 0;
 
                 for(size_t clus = 0; clus < this->_k;clus++){
-                    double const distance = distanceCal(x->_data[j],
-                    y->_data[j],m(clus,0),m(clus,1));
+                    double const distance = distanceCal(x->_data.at(j),
+                    y->_data.at(j),m(clus,0),m(clus,1));
 
                     if(distance < bestDis){
                         bestDis = distance;
                         bestClus = clus;
                     }
                 }
-                assignment[j] = bestClus;
+                assignment.at(j) = bestClus;
             }
 
             matrix<double> new_mean(this->_k,2);
@@ -67,14 +67,14 @@ namespace ML{
             std::vector<size_t> counts(this->_k,0);
 
             for(size_t p = 0; p < x->size(); p++){
-                auto const clus = assignment[p];
-                new_mean(clus,0) += x->_data[p]; 
-                new_mean(clus,1) += y->_data[p]; 
+                auto const clus = assignment.at(p);
+                new_mean(clus,0) += x->_data.at(p); 
+                new_mean(clus,1) += y->_data.at(p); 
                 counts[clus] ++;
             }
 
             for(int i = 0; i < this->_k; i++){
-                std::cout<<counts[i]<<'\n';
+                std::cout<<counts.at(i)<<'\n';
             }
 
             for(size_t clus = 0; clus < this->_k; clus++){
@@ -99,8 +99,8 @@ namespace ML{
                 size_t bestClus = 0;
 
                 for(size_t clus = 0; clus < this->_k;clus++){
-                    double const distance = distanceCal(x->_data[j],
-                    y->_data[j],this->_clustors(clus,0),this->_clustors(clus,1));
+                    double const distance = distanceCal(x->_data.at(j),
+                    y->_data.at(j),this->_clustors(clus,0),this->_clustors(clus,1));
 
                     if(distance < bestDis){
                         bestDis = distance;
