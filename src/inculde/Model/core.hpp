@@ -24,6 +24,7 @@ namespace ML{
         size_t _falseP{0};
         size_t _trueN{0};
         size_t _falseN{0};
+        size_t _total{1};
         matrix<double>  _coeff;
         double          _squareDueResidual{0};
         double          _squareDueRegression{0};
@@ -31,6 +32,11 @@ namespace ML{
         double          _mean{0};
         matrix<double>  _predic;
         void confusionMatrix() const noexcept;
+        void listRates() const noexcept;
+
+    protected:
+        matrix<double>  _x;
+        matrix<double>  _y;
     };
 
     void Core::confusionMatrix() const noexcept{
@@ -38,6 +44,21 @@ namespace ML{
         puts("");
         std::cout<<"True Postive: "<<_trueP<<'\n'<<"False Negative: "<<_falseN<<'\n';
         std::cout<<"True Negative: "<<_trueN<<'\n'<<"False Postive: "<<_falseP<<'\n';
+        for(int i = 0; i < 50; i++) std::cout<<'-';
+        puts("");
+    }
+
+    void Core::listRates() const noexcept{
+        puts("Rates");
+        for(int i = 0; i < 50; i++) std::cout<<'-';
+        puts("");
+        std::cout<<"Accuracy: " << ((_trueP + _trueN)/(_total * 1.0))<<'\n';
+        std::cout<<"Misclassification Rate: " << ((_falseP + _falseN)/(_total * 1.0))<<'\n';
+        std::cout<<"Sensitivity: " << ((_trueP * 1.0)/(_falseN + _trueP))<<'\n';
+        std::cout<<"False Positive Rate: " << ((_falseP * 1.0)/(_trueN + _falseP))<<'\n';
+        std::cout<<"Specificity: " << ((_trueN * 1.0)/(_trueN + _falseP))<<'\n';
+        std::cout<<"Precision: " << ((_trueN * 1.0)/(_trueP + _falseP))<<'\n';
+        std::cout<<"Prevalence: " << ((_falseN + _trueP)/(_total * 1.0))<<'\n';
         for(int i = 0; i < 50; i++) std::cout<<'-';
         puts("");
     }

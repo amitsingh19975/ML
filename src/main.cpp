@@ -41,6 +41,7 @@ int main(){
     // csv.print();
     LogisticRegression k;
     // frameTrain.print(3);
+    auto t = *test;
 
     auto frameTrainY = (*train)[{"diagnosis"}];
     auto frameTrainX = (*train)[{"radius_mean", "texture_mean", "smoothness_mean",
@@ -57,6 +58,6 @@ int main(){
     k.train(frameTrainX,frameTrainY);
     k.test(frameTestX,frameTestY);
     cout<<k.adjRSquared()<<'\n';
-    k.confusionMatrix();
+    k.listRates();
     return 0;
 }

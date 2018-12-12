@@ -22,8 +22,6 @@ namespace ML{
         void test(Frame* xTrainData, Frame* yTrainData) override;
 
     protected:
-        matrix<double>  _x;
-        matrix<double>  _y;
         int             _dimension;
         bool            _ortho{false};
         bool            _isTrained{false};

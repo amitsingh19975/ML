@@ -34,7 +34,6 @@ namespace ML{
                 for(int j = 0; j < this->_coeff.size1(); j++){
                     this->_predic(i,0) += this->_coeff(j,0) * xTest(i,j); 
                 }
-                this->_errorInPredic(i,0) = this->_predic(i,0) - yTest(i,0);
             }  
         }
 

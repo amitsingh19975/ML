@@ -28,6 +28,7 @@ namespace ML{
             convertToUblasMatrix(yTestData,yTest);
 
             this->_predic = prod(xTest,this->_coeff);
+            this->_total = this->_rows;
             for(int i = 0; i < this->_predic.size1(); i++){
                 this->_predic(i,0) = calProb(this->_predic(i,0)) >= 0.5 ? 1 : 0; 
                 if(this->_predic(i,0) != yTest(i,0)){
