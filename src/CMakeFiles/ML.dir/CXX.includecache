@@ -53,14 +53,6 @@ LinearRegression.hpp
 /Users/Amit/Desktop/Python/ML/src/inculde/Model/PolyRegression.hpp
 core.hpp
 /Users/Amit/Desktop/Python/ML/src/inculde/Model/core.hpp
-utility
--
-iostream
--
-vector
--
-cmath
--
 
 /Users/Amit/Desktop/Python/ML/src/inculde/Model/core.hpp
 ../Frame/frame.hpp
@@ -78,6 +70,12 @@ chrono
 random
 -
 iostream
+-
+utility
+-
+vector
+-
+cmath
 -
 
 /Users/Amit/Desktop/Python/ML/src/inculde/Series/vec.hpp

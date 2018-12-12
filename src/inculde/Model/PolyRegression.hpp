@@ -2,31 +2,25 @@
 #define POLY_REGRESSION_H
 
 #include "core.hpp"
-#include <utility>
-#include <iostream>
-#include <vector>
-#include <cmath>
 
 namespace ML{
-    using namespace boost::numeric::ublas;
     struct PolyRegression : Core{
     
     public:
         matrix<double>  _w;
-        matrix<double>  _coeff;
-        double          _squareDueResidual;
-        double          _squareDueRegression;
-        double          _totalSumOfSquare;
-        matrix<double>  _predic;
         matrix<double>  _errorInPredic;
+        using Core::train;
+        using Core::test;
         std::function<double(double,double)> _func = [](double exp, double pow){return std::pow(exp,pow);};
 
-        PolyRegression(int dimension = 1,bool ortho = false):_dimension(dimension + 1),_ortho(ortho),_coeff(dimension + 1, 1){}
+        PolyRegression(int dimension = 1,bool ortho = false):_dimension(dimension + 1),_ortho(ortho){_coeff.resize(dimension + 1, 1);}
 
-        virtual double rSquared();
+        virtual double RSquared();
+        virtual double adjRSquared();
         std::vector<double> getCoeff() const noexcept;
         void train(Frame* xTrainData, Frame* yTrainData) override;
         void test(Frame* xTrainData, Frame* yTrainData) override;
+
     protected:
         matrix<double>  _x;
         matrix<double>  _y;
@@ -40,9 +34,8 @@ namespace ML{
         bool inverseMatrix(matrix<double>& m, matrix<double>& inv);
         virtual void calWeights();
         virtual void calCoeff();
-        void squareDueRegression();
-        void squareDueResidual(double bxy,double mean);
-        void totalSumOfSquare(double mean,double yy);
+        virtual void squareDueRegression();
+        virtual void squareDueResidual(matrix<double> &m);
         void getOrthoMatrix(matrix<double>& ortho);
         
         template<typename T>
@@ -109,34 +102,30 @@ namespace ML{
         return v;
     }
 
-    double PolyRegression::rSquared(){
+    double PolyRegression::RSquared(){
         this->squareDueRegression();
         return ((this->_squareDueRegression / this->_totalSumOfSquare));
     }
+    
+    double PolyRegression::adjRSquared(){
+        double r = this->RSquared();
+        int n = this->_y.size1();
+        int k = this->_x.size2() - 1;
+        return (1 - ((1 - r * r) * ( n - 1)) / (n - k - 1));
+    }
 
     void PolyRegression::squareDueRegression(){
-        double bxy{0};
-
-        double temp{0};
-        for(int i = 0; i < this->_y.size1(); i++){
-            temp += (this->_y(i,0));
+        this->_squareDueRegression = 0;
+        matrix<double> temp = prod(this->_x,this->_coeff);
+        for(int i = 0; i < temp.size1(); i++){
+            this->_squareDueRegression += (temp(i,0) - this->_mean) * (temp(i,0) - this->_mean);
+            this->_totalSumOfSquare += (this->_y(i,0) - this->_mean) * (this->_y(i,0) - this->_mean);
         }
-        temp = (temp * temp) / this->_y.size1();
-
-        matrix<double> bTrans = trans(this->_coeff);
-        matrix<double> xTrans = trans(this->_x);
-        matrix<double> product = prod(bTrans,xTrans);
-        bxy = prod(product,this->_y)(0,0);
-        this->_squareDueRegression = bxy - temp;
-        this->squareDueResidual(bxy, temp);
+        this->squareDueResidual(temp);
     }
-    void PolyRegression::squareDueResidual(double bxy, double mean){
-        double yy = prod(trans(this->_y), this->_y)(0,0);
-        this->_squareDueResidual = yy - bxy;
-        this->totalSumOfSquare(mean,yy);
-    }
-    void PolyRegression::totalSumOfSquare(double mean,double yy){
-        this->_totalSumOfSquare = yy - mean;
+    void PolyRegression::squareDueResidual(matrix<double> &m){
+        m = this->_y - m;
+        this->_squareDueResidual = prod(trans(m),m)(0,0);
     }
 
     void PolyRegression::getOrthoMatrix(matrix<double>& ortho){
@@ -186,7 +175,7 @@ namespace ML{
 
         convertToUblasMatrix(xTrainData,this->_x,false);
         convertToUblasMatrix(yTrainData,this->_y);
-
+        this->_mean = yTrainData->mean(0);
         this->fit();
         _isTrained = true;
     }

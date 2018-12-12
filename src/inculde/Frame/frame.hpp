@@ -46,13 +46,26 @@ namespace ML{
         void numberToLabel(int idx);
         void apply(std::function<double(double)> func);
 
-        Series* operator[](int i){return this->_data.at(i).get();}
+        Series* operator[](int i){return this->_data.at(i % this->_cols).get();}
+        std::shared_ptr<Frame> operator[](std::initializer_list<std::string> l){
+            return std::move(this->colSlice(l));
+        }
+        Series* operator[](std::string_view header){
+            if( auto it = std::find(this->_headers.begin(),this->_headers.end(),header);
+                it == this->_headers.end()){
+                std::cerr<< "Line: " + std::to_string(__LINE__)<<'\n';
+                exit(1);
+            }else{
+                auto idx = std::distance(this->_headers.begin(),it);
+                return this->_data.at(idx).get();
+            }
+        }
         size_t size() const noexcept{return this->_data.size();}
 
         std::unique_ptr<Series> dropCol(int idx); 
-        std::unique_ptr<Frame> colSlice(size_t start, size_t end = std::numeric_limits<size_t>::max()); 
-        std::unique_ptr<Frame> colSlice(std::vector<int> l); 
-        std::unique_ptr<Frame> colSlice(std::initializer_list<std::string> l); 
+        std::shared_ptr<Frame> colSlice(size_t start, size_t end = std::numeric_limits<size_t>::max()); 
+        std::shared_ptr<Frame> colSlice(std::vector<int> l); 
+        std::shared_ptr<Frame> colSlice(std::initializer_list<std::string> l); 
         std::vector<std::unique_ptr<Series>> dropRow(int idx); 
         std::pair<Frame*, Frame*> split(float percentage = 30, bool randomized = true); 
         static void randomize(Frame* frame, int iteration = 50); 
@@ -62,6 +75,7 @@ namespace ML{
         double variance(int col){return this->at(col)->variance();}
         double median(int col){return this->at(col)->median();}
         void normalize(double val = 0);
+        double corrcoef(int i, int j);
         
         template<typename T = double>
         std::unique_ptr<std::unordered_map<T, int>> unique(int col);
@@ -94,6 +108,7 @@ namespace ML{
         std::unique_ptr<Frame> _train;
         std::unique_ptr<Frame> _test;
     };
+
 
     template<typename U>
     U Frame::at(int i,int j){
@@ -417,7 +432,7 @@ namespace ML{
         }
     }
 
-    std::unique_ptr<Frame> Frame::colSlice(size_t start, size_t end){
+    std::shared_ptr<Frame> Frame::colSlice(size_t start, size_t end){
         if(isEmpty() || this->_cols <= start || start < 0) {
             std::cerr<< "Line: " + std::to_string(__LINE__)<<'\n';
             exit(1);
@@ -436,7 +451,7 @@ namespace ML{
         }
         return std::move(f);
     } 
-    std::unique_ptr<Frame> Frame::colSlice(std::vector<int> l){
+    std::shared_ptr<Frame> Frame::colSlice(std::vector<int> l){
         
         for(auto num: l){
             if(num >= this->_cols || num <0){
@@ -460,7 +475,7 @@ namespace ML{
         
         return std::move(f);
     } 
-    std::unique_ptr<Frame> Frame::colSlice(std::initializer_list<std::string> l){
+    std::shared_ptr<Frame> Frame::colSlice(std::initializer_list<std::string> l){
         std::vector<int> v;
         for(std::string const& num: l){
             auto it = std::find(this->_headers.begin(),this->_headers.end(),num.c_str());
@@ -488,6 +503,22 @@ namespace ML{
             if(this->_data.at(i)->_type != "string")
                 this->_data.at(i)->apply(func);
         }
+    }
+
+    double Frame::corrcoef(int i, int j){
+        if(this->_cols <= i || this->_cols <= j ){
+            std::cerr<< "OutOfBound: " + std::to_string(__LINE__)<<'\n';
+            return 0;
+        }
+        double ux = this->_data.at(i)->mean();
+        double uy = this->_data.at(j)->mean();
+        double sx = this->_data.at(i)->stdS();
+        double sy = this->_data.at(j)->stdS();
+        double t = 0;
+        for(int k = 0; k < this->_rows; k++){
+            t += ((this->at(k,i) - ux)/sx) * ((this->at(k,j) - uy) / sy);
+        }
+        return t / (this->_rows - 1);
     }
 }
 

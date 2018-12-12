@@ -42,7 +42,9 @@ namespace ML{
         
         virtual double mean() = 0;
         virtual double variance() = 0;
+        virtual double varianceS() = 0;
         virtual double std() = 0;
+        virtual double stdS() = 0;
         virtual double median() = 0;
         virtual double max() = 0;
         virtual double min() = 0;
@@ -174,11 +176,29 @@ namespace ML{
             }
             return s;
         }
+        double varianceS() final override{
+            double s = 0;
+            if(this->_data.empty()) return 0;
+            if constexpr(std::is_same_v<T, std::string>) return 0; 
+            else{
+                double m = this->mean();
+                for(int i = this->_data.size() - 1; i >= 0; i--){
+                    s += (this->_data.at(i) - m) * (this->_data.at(i) - m);
+                }
+                s /= (this->size() - 1);
+            }
+            return s;
+        }
 
         double std() final override{
             if(this->_data.empty()) return 0;
             if constexpr(std::is_same_v<T, std::string>) return 0; 
             else return std::sqrt(this->variance());
+        }
+        double stdS() final override{
+            if(this->_data.empty()) return 0;
+            if constexpr(std::is_same_v<T, std::string>) return 0; 
+            else return std::sqrt(this->varianceS());
         }
         
         std::unique_ptr<std::unordered_map<std::string, int>> unique() final override{

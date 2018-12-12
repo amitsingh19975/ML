@@ -8,7 +8,8 @@ namespace ML{
     struct LogisticRegression : LinearRegression{
         size_t _rows;
         size_t _cols;
-
+        using Core::train;
+        using Core::test;
         matrix<double> _mu;
         double _mean{0};
         float _threshold{0.5};
@@ -20,7 +21,7 @@ namespace ML{
             if(!this->_isTrained) return;
             this->_rows = xTestData->_rows;
             this->_cols = xTestData->_cols;
-            
+
             matrix<double> xTest(this->_rows,this->_cols + 1),yTest(this->_rows,1);
             
             convertToUblasMatrix(xTestData,xTest,false);
@@ -46,10 +47,26 @@ namespace ML{
             } 
         }
 
+        void squareDueRegression() override{
+            this->_squareDueRegression = 0;
+            matrix<double> temp = prod(this->_x,this->_coeff);
+            for(int i = 0; i < temp.size1(); i++){
+                this->_squareDueRegression += (temp(i,0) >= 0.5 ? 1 : 0 - this->_mean) * (temp(i,0) >= 0.5 ? 1 : 0 - this->_mean);
+                this->_totalSumOfSquare += (this->_y(i,0) - this->_mean) * (this->_y(i,0) - this->_mean);
+            }
+            this->squareDueResidual(temp);
+        }
+        void squareDueResidual(matrix<double> &m) override{
+            m = this->_y - m;
+            this->_squareDueResidual = prod(trans(m),m)(0,0);
+        }
+
+
     protected:
         double calProb(double exp){
             return (1.0 / (std::exp(-exp) + 1.0));
         }
+
         void calCoeff() override{
             matrix<double> R(this->_y.size1(),this->_y.size1());
             matrix<double> temp, oldW, xT;
@@ -67,11 +84,9 @@ namespace ML{
                 temp = prod(temp,oldW);
                 this->_coeff = this->_coeff + temp;
             }
-            std::cout<<this->_coeff<<'\n';
 
         }
 
-    protected:
         void calDigonal(matrix<double>& m){
             calCoeffHelper();
             for(int i = 0; i < this->_y.size1(); i++){

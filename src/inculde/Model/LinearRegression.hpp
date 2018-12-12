@@ -7,10 +7,12 @@
 namespace ML{
     using namespace boost::numeric::ublas;
     struct LinearRegression : PolyRegression{
-        size_t _rows;
-        size_t _cols;
-        double _mean{0};
-        float _threshold{0.5};
+        size_t          _rows;
+        size_t          _cols;
+        float           _threshold{0.5};
+        
+        using Core::train;
+        using Core::test;
         LinearRegression(float threshold = 0.5):_threshold(threshold){
             _func = [](double exp ,double p){return exp;};
         }
@@ -45,6 +47,7 @@ namespace ML{
 
             convertToUblasMatrix(xTrainData,this->_x,false);
             convertToUblasMatrix(yTrainData,this->_y);
+
             this->_mean = yTrainData->mean(0);
             this->_coeff.resize(this->_x.size2(),1);
             for(int i = 0; i < this->_coeff.size1();i++){
