@@ -1,16 +1,18 @@
 #ifndef FRAME_HPP
 #define FRAME_HPP
 
-#include <iostream>
-#include <string>
-#include <vector>
 #include "../Series/vec.hpp"
-#include <chrono>
-#include <random>
 
 namespace ML{
+    struct Frame;
+    using Tuple = std::tuple<Frame*, Frame*, Frame*, Frame*>;
+    using Pair = std::pair<Frame*, Frame*>;
+    using FrameShared = std::shared_ptr<Frame>;
+    using FrameUnique = std::unique_ptr<Frame>;
+    using SeriesUnique = std::unique_ptr<Series>;
     struct Frame{
-        std::vector<std::unique_ptr<Series>> _data;
+
+        std::vector<SeriesUnique> _data;
         std::vector<std::string> _headers;
 
         size_t _rows{0};
@@ -19,14 +21,14 @@ namespace ML{
         Frame(){}
         Frame(size_t row, size_t col):_rows(row),_cols(col){}
         Frame(std::vector<std::string>& h): _headers(h){}
-        Frame(std::vector<std::unique_ptr<Series>> data):_cols(data.size()),_rows(data.at(0)->size()),_data(std::move(data)){}
-        Frame(std::unique_ptr<Series> data, std::string header = ""){
+        Frame(std::vector<SeriesUnique> data):_cols(data.size()),_rows(data.at(0)->size()),_data(std::move(data)){}
+        Frame(SeriesUnique data, std::string header = ""){
             this->_data.push_back(std::move(data));
             this->_headers.push_back(header);
             this->_cols = this->_data.size();
             this->_rows = this->_data.at(0)->size();
         }
-        Frame(std::vector<std::unique_ptr<Series>> data,
+        Frame(std::vector<SeriesUnique> data,
         std::vector<std::string> _header):_cols(data.size()),_rows(data.at(0)->size()),_data(std::move(data)),_headers(_header){}
 
         template<typename T>
@@ -34,10 +36,20 @@ namespace ML{
         template<typename T>
         Frame(std::vector<T>& data, std::string header = "");
         template<typename T>
+        Frame(matrix<T>& data, std::vector<std::string> headers);
+        template<typename T>
+        Frame(matrix<T>& data,std::unordered_map<std::string,int>& label, std::vector<std::string> headers):Frame(data,headers){
+            this->setLabel(label,0);
+            this->_headers = headers;
+            this->updateSize();
+        }
+        template<typename T>
         Frame(std::initializer_list<std::initializer_list<T>> data);
 
         void print(int size = -1, int ind = 5) const noexcept;
-        bool addSeries(std::unique_ptr<Series> series);
+        void printHeader(int ind = 5) const noexcept;
+        void info() const noexcept;
+        bool addSeries(SeriesUnique series);
         bool addSeries(Series* series);
         template<typename T> bool addVec(Vec<T>* vec);
         template<typename U = double> U at(int i, int j);
@@ -47,7 +59,7 @@ namespace ML{
         void apply(std::function<double(double)> func);
 
         Series* operator[](int i){return this->_data.at(i % this->_cols).get();}
-        std::shared_ptr<Frame> operator[](std::initializer_list<std::string> l){
+        FrameShared operator[](std::initializer_list<std::string> l){
             return std::move(this->colSlice(l));
         }
         Series* operator[](std::string_view header){
@@ -62,13 +74,14 @@ namespace ML{
         }
         size_t size() const noexcept{return this->_data.size();}
 
-        std::unique_ptr<Series> dropCol(int idx); 
-        std::shared_ptr<Frame> colSlice(size_t start, size_t end = std::numeric_limits<size_t>::max()); 
-        std::shared_ptr<Frame> colSlice(std::vector<int> l); 
-        std::shared_ptr<Frame> colSlice(std::initializer_list<std::string> l); 
-        std::vector<std::unique_ptr<Series>> dropRow(int idx); 
-        std::pair<Frame*, Frame*> split(float percentage = 30, bool randomized = true); 
-        static void randomize(Frame* frame, int iteration = 50); 
+        SeriesUnique dropCol(int idx); 
+        FrameShared colSlice(size_t start, size_t end = std::numeric_limits<size_t>::max()); 
+        FrameShared colSlice(std::vector<int> l); 
+        FrameShared colSlice(std::initializer_list<std::string> l); 
+        std::vector<SeriesUnique> dropRow(int idx); 
+        Pair split(float trainPercentage = 30, int randomSeed = 42); 
+        Tuple split(FrameShared& X, FrameShared& y, float trainPercentage = 30, int randomSeed = 42); 
+        static void randomize(Frame* frame, int seed = 42, int iteration = 50); 
 
         double mean(int col){return this->at(col)->mean();}
         double std(int col){return this->at(col)->std();}
@@ -83,6 +96,13 @@ namespace ML{
         template<typename U = double>
         static Vec<U>* cast(Series* data){
             return static_cast<Vec<U>*>(data);
+        }
+
+        std::unordered_map<std::string,int> getLabel(int idx) noexcept{
+            return this->_data[idx % this->_cols]->_labelMap;
+        }
+        void setLabel(std::unordered_map<std::string,int> label, int idx) noexcept{
+            this->_data[idx % this->_cols]->_labelMap = label;
         }
     protected:
         void indentUtil(int indent = 0) const noexcept{
@@ -105,8 +125,8 @@ namespace ML{
             }
             return false;
         }
-        std::unique_ptr<Frame> _train;
-        std::unique_ptr<Frame> _test;
+        FrameUnique _train;
+        FrameUnique _test;
     };
 
 
@@ -134,6 +154,15 @@ namespace ML{
         }else return this->at(j)->atS(i);
     }
 
+    void Frame::printHeader(int ind) const noexcept {
+        std::vector<int> lenghtOfHeaderString(this->_headers.size());
+        int i = 0;
+        for(auto h : this->_headers){
+            printf("%s",h.c_str());
+            this->indentUtil(ind);
+            lenghtOfHeaderString[i++] = h.size();
+        }
+    } 
     void Frame::print(int size, int ind) const noexcept {
         if(isEmpty()) {
             std::cerr<< "Line: " + std::to_string(__LINE__)<<'\n';
@@ -157,20 +186,20 @@ namespace ML{
             for(int j = 0; j < this->_data.size();j++){
                 auto d = this->_data.at(j).get();
                 if(d->_type == "string"){
-                    Vec<std::string> t = *cast<std::string>(d);
-                    std::cout<<t.at(i);
-                    indent(t[i],lenghtOfHeaderString,j,ind);
+                    std::cout<<d->atS(i);
+                    std::string temp = d->atS(i);
+                    indent(temp,lenghtOfHeaderString,j,ind);
                 }else{
-                    Vec<double> t = *cast<double>(d);
-                    std::cout<<t.at(i);
-                    indent(t[i],lenghtOfHeaderString,j,ind);
+                    std::cout<<d->at(i);
+                    double temp = d->at(i);
+                    indent(temp,lenghtOfHeaderString,j,ind);
                 }
             }
             std::cout<<'\n';
         }
     } 
 
-    std::unique_ptr<Series> Frame::dropCol(int idx){
+    SeriesUnique Frame::dropCol(int idx){
         if(isEmpty()|| this->_cols < idx|| idx < 0) {
             std::cerr<< "Line: " + std::to_string(__LINE__)<<'\n';
             exit(1);
@@ -181,14 +210,14 @@ namespace ML{
         this->updateSize();
         return std::move(t);
     } 
-    std::vector<std::unique_ptr<Series>> Frame::dropRow(int idx){
+    std::vector<SeriesUnique> Frame::dropRow(int idx){
         if(isEmpty()) {
             std::cerr<< "Line: " + std::to_string(__LINE__)<<'\n';
             return {};
         }
-        // std::vector<std::unique_ptr<Series>> temp;
+        // std::vector<SeriesUnique> temp;
         // for(int i = 0; i < this->_data.at(0)->size(); i++){
-        //     std::unique_ptr<Series> s;
+        //     SeriesUnique s;
         //     if(this->_data.at(i)->_type == "string") {
         //         auto t = this->cast<std::string>(this->_data.at(i).get());
         //         temp.emplace_back(std::make_unique<Vec<std::string>>(t->_header,"string",t.at(i)));
@@ -214,24 +243,26 @@ namespace ML{
         if((series)->_type == "double" && Frame::cast(series) == nullptr) return false;
 
         if(series->_type == "string"){
-            std::unique_ptr<Series> s(new Vec<std::string>(series->_header,"string"));
+            SeriesUnique s(new Vec<std::string>(series->_header,"string"));
             for(int i = 0; i < series->size(); i++){
                 s->push_s(series->atS(i));
             }
+            s->_labelMap = series->_labelMap;
             this->_headers.push_back((s)->_header);
             this->_data.push_back(std::move(s));
         }else{
-            std::unique_ptr<Series> s(new Vec<double>(series->_header,"double"));
+            SeriesUnique s(new Vec<double>(series->_header,"double"));
             for(int i = 0; i < series->size(); i++){
                 s->push_d(series->at(i));
             }
+            s->_labelMap = series->_labelMap;
             this->_headers.push_back((s)->_header);
             this->_data.push_back(std::move(s));
         }
         this->updateSize();
         return true;
     }
-    bool Frame::addSeries(std::unique_ptr<Series> series){
+    bool Frame::addSeries(SeriesUnique series){
         if(isEmpty()) {
             std::cerr<< "Line: " + std::to_string(__LINE__)<<'\n';
             return false;
@@ -250,13 +281,31 @@ namespace ML{
     }
 
     template<typename T>
+    Frame::Frame(matrix<T>& data, std::vector<std::string> headers){
+        for(size_t i = 0; i < data.size2(); i++){
+            std::vector<T> temp;
+            for(size_t j = 0; j < data.size1(); j++){
+                temp.push_back(data(j,i));
+            }
+            if constexpr(std::is_same_v<T,std::string>){
+                SeriesUnique s(new Vec<T>(headers[i],"string",temp));
+                this->_data.push_back(std::move(s));
+            }else{
+                SeriesUnique s(new Vec<T>(headers[i],"double",temp));
+                this->_data.push_back(std::move(s));
+            }
+        }
+        this->_headers = headers;
+        this->updateSize();
+    }
+    template<typename T>
     Frame::Frame(std::vector<T>& data, std::string header){
         if constexpr(std::is_same_v<T,std::string>){
-            std::unique_ptr<Series> s(new Vec<T>(header,"string",data));
+            SeriesUnique s(new Vec<T>(header,"string",data));
             this->_data.push_back(std::move(s));
             this->_headers.push_back((header));
         }else{
-            std::unique_ptr<Series> s(new Vec<T>(header,"double",data));
+            SeriesUnique s(new Vec<T>(header,"double",data));
             this->_data.push_back(std::move(s));
             this->_headers.push_back((header));
         }
@@ -267,11 +316,11 @@ namespace ML{
         int i = 0;
         for(auto v : data){
             if constexpr(std::is_same_v<T,std::string>){
-                std::unique_ptr<Series> s(new Vec<T>(std::to_string(i),"string",v));
+                SeriesUnique s(new Vec<T>(std::to_string(i),"string",v));
                 this->_data.push_back(std::move(s));
                 this->_headers.push_back(std::to_string(i++));
             }else{
-                std::unique_ptr<Series> s(new Vec<T>(std::to_string(i),"double",v));
+                SeriesUnique s(new Vec<T>(std::to_string(i),"double",v));
                 this->_data.push_back(std::move(s));
                 this->_headers.push_back(std::to_string(i++));
             }
@@ -290,7 +339,7 @@ namespace ML{
         }
         if(this->_data[idx]->_type != "string") return;
         int i = 0, j = 0;
-        std::unique_ptr<Series> newCol(new Vec<double>(this->_headers[idx],"double",this->_data[idx]->size()));
+        SeriesUnique newCol(new Vec<double>(this->_headers[idx],"double",this->_data[idx]->size()));
         auto newColVec = Frame::cast(newCol.get());
         for(auto key : Frame::cast<std::string>(this->_data[idx].get())->_data){
             if(newCol->_labelMap.find(key) == newCol->_labelMap.end()){
@@ -298,7 +347,6 @@ namespace ML{
             }
             newColVec->_data[j++] = (newCol->_labelMap[key]);
         }
-
         this->_data[idx] = std::move(newCol);
     }
     void Frame::numberToLabel(int idx){
@@ -308,7 +356,7 @@ namespace ML{
         }
         if(this->_data[idx]->_type != "double" && this->_data[idx]->_labelMap.size() == 0) return;
         
-        std::unique_ptr<Series> newCol(new Vec<std::string>(this->_headers[idx],"string",this->_data[idx]->size()));
+        SeriesUnique newCol(new Vec<std::string>(this->_headers[idx],"string",this->_data[idx]->size()));
         auto newColVec = Frame::cast<std::string>(newCol.get());
         auto oldColVec = Frame::cast(this->_data[idx].get());
 
@@ -352,31 +400,32 @@ namespace ML{
         }
     }
 
-    std::pair<Frame*, Frame*> Frame::split(float percentage, bool randomized){
+    Pair Frame::split(float trainPercentage, int randomSeed){
         if(isEmpty()) {
             std::cerr<< "Line: " + std::to_string(__LINE__)<<'\n';
             exit(1);
         }
 
-        if(randomized) Frame::randomize(this);
-        size_t idx = std::ceil((float)((percentage * this->_rows)/100.0));
+        Frame::randomize(this,randomSeed);
+
+        size_t idx = std::ceil((float)((trainPercentage * this->_rows)/100.0));
         _train = std::make_unique<Frame>(this->_headers);
         _test = std::make_unique<Frame>(this->_headers);
 
         for(size_t i = 0; i < this->_cols; i++){
             if(this->_data.at(i)->_type == "string"){
-                std::unique_ptr<Series> temp(new Vec<std::string>(this->_headers.at(i),"string"));
+                SeriesUnique temp(new Vec<std::string>(this->_headers.at(i),"string"));
                 for(size_t j = 0; j < idx; j++){
                     temp->push_s(this->at<std::string>(j,i));
                 }
-                temp->_labelMap = this->at(i)->_labelMap;
+                temp->_labelMap = this->getLabel(i);
                 _train->_data.push_back(std::move(temp));
             }else{
-                std::unique_ptr<Series> temp(new Vec<double>(this->_headers.at(i),"double"));
+                SeriesUnique temp(new Vec<double>(this->_headers.at(i),"double"));
                 for(size_t j = 0; j < idx; j++){
                     temp->push_d(this->at(j,i));
                 }
-                temp->_labelMap = this->at(i)->_labelMap;
+                temp->_labelMap = this->getLabel(i);
                 _train->_data.push_back(std::move(temp));
             }
             _train->_cols = _train->_data.size();
@@ -384,19 +433,18 @@ namespace ML{
         }
         for(size_t i = 0; i < this->_cols; i++){
             if(this->_data.at(i)->_type == "string"){
-                std::unique_ptr<Series> temp(new Vec<std::string>(this->_headers.at(i),"string"));
+                SeriesUnique temp(new Vec<std::string>(this->_headers.at(i),"string"));
                 for(size_t j = idx; j < this->_rows; j++){
                     temp->push_s(this->at<std::string>(j,i));
-                    // std::cout<<j<<'\n';
                 }
-                temp->_labelMap = this->at(i)->_labelMap;
+                temp->_labelMap = this->getLabel(i);
                 _test->_data.push_back(std::move(temp));
             }else{
-                std::unique_ptr<Series> temp(new Vec<double>(this->_headers.at(i),"double"));
+                SeriesUnique temp(new Vec<double>(this->_headers.at(i),"double"));
                 for(size_t j = idx; j < this->_rows; j++){
                     temp->push_d(this->at(j,i));
                 }
-                temp->_labelMap = this->at(i)->_labelMap;
+                temp->_labelMap = this->getLabel(i);
                 _test->_data.push_back(std::move(temp));
             }
             _test->updateSize();
@@ -406,12 +454,18 @@ namespace ML{
         return {this->_train.get(),this->_test.get()};
     }
 
-    void Frame::randomize(Frame* frame, int iteration){
+    Tuple Frame::split(FrameShared& X, FrameShared& y, float trainPercentage, int randomSeed){
+        auto [X_train, X_test] = X->split(trainPercentage,randomSeed);
+        auto [y_train, y_test] = y->split(trainPercentage,randomSeed);
+        return {X_train, X_test, y_train, y_test};
+    }
+
+    void Frame::randomize(Frame* frame, int seed,int iteration){
         if(frame->isEmpty()) {
             std::cerr<< "Line: " + std::to_string(__LINE__)<<'\n';
             return;
         }
-        auto seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+
         std::mt19937 gen(seed);
         std::uniform_int_distribution<size_t> distribution(0,frame->_rows - 1);
         auto idxGen = [&](){
@@ -432,12 +486,12 @@ namespace ML{
         }
     }
 
-    std::shared_ptr<Frame> Frame::colSlice(size_t start, size_t end){
+    FrameShared Frame::colSlice(size_t start, size_t end){
         if(isEmpty() || this->_cols <= start || start < 0) {
             std::cerr<< "Line: " + std::to_string(__LINE__)<<'\n';
             exit(1);
         }
-        std::unique_ptr<Frame> f(new Frame(this->_rows,std::min(end,this->_cols) - start));
+        FrameUnique f(new Frame(this->_rows,std::min(end,this->_cols) - start));
         if(end == std::numeric_limits<size_t>::max()){
             size_t s = start;
             while(this->_cols > s ){
@@ -451,7 +505,7 @@ namespace ML{
         }
         return std::move(f);
     } 
-    std::shared_ptr<Frame> Frame::colSlice(std::vector<int> l){
+    FrameShared Frame::colSlice(std::vector<int> l){
         
         for(auto num: l){
             if(num >= this->_cols || num <0){
@@ -462,9 +516,10 @@ namespace ML{
             std::cerr<< "Line: " + std::to_string(__LINE__)<<'\n';
             exit(1);
         }
-        std::unique_ptr<Frame> f(new Frame(this->_rows, l.size()));
+        FrameUnique f(new Frame(this->_rows, l.size()));
         for(auto i : l){
             f->addSeries(this->at(i));
+
         }
         std::sort(l.begin(),l.end(),std::greater<int>());
 
@@ -475,7 +530,7 @@ namespace ML{
         
         return std::move(f);
     } 
-    std::shared_ptr<Frame> Frame::colSlice(std::initializer_list<std::string> l){
+    FrameShared Frame::colSlice(std::initializer_list<std::string> l){
         std::vector<int> v;
         for(std::string const& num: l){
             auto it = std::find(this->_headers.begin(),this->_headers.end(),num.c_str());
@@ -491,7 +546,6 @@ namespace ML{
             exit(1);
         }
         return std::move(colSlice(v));
-        return {};
     } 
 
     void Frame::apply(std::function<double(double)> func){
@@ -519,6 +573,14 @@ namespace ML{
             t += ((this->at(k,i) - ux)/sx) * ((this->at(k,j) - uy) / sy);
         }
         return t / (this->_rows - 1);
+    }
+    void Frame::info() const noexcept{
+        for(int i = 0; i < 20; i++) std::cout<<'-';
+        std::cout<<"INFO";
+        for(int i = 0; i < 20; i++) std::cout<<'-';
+        puts("");
+        std::cout<<'('<<_rows<<','<<_cols<<')'<<'\n';
+        
     }
 }
 

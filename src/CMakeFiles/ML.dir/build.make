@@ -60,15 +60,15 @@ include src/CMakeFiles/ML.dir/flags.make
 src/CMakeFiles/ML.dir/main.cpp.o: src/CMakeFiles/ML.dir/flags.make
 src/CMakeFiles/ML.dir/main.cpp.o: src/main.cpp
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/Users/Amit/Desktop/Python/ML/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object src/CMakeFiles/ML.dir/main.cpp.o"
-	cd /Users/Amit/Desktop/Python/ML/src && /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/ML.dir/main.cpp.o -c /Users/Amit/Desktop/Python/ML/src/main.cpp
+	cd /Users/Amit/Desktop/Python/ML/src && /usr/bin/g++  $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -o CMakeFiles/ML.dir/main.cpp.o -c /Users/Amit/Desktop/Python/ML/src/main.cpp
 
 src/CMakeFiles/ML.dir/main.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/ML.dir/main.cpp.i"
-	cd /Users/Amit/Desktop/Python/ML/src && /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/Amit/Desktop/Python/ML/src/main.cpp > CMakeFiles/ML.dir/main.cpp.i
+	cd /Users/Amit/Desktop/Python/ML/src && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /Users/Amit/Desktop/Python/ML/src/main.cpp > CMakeFiles/ML.dir/main.cpp.i
 
 src/CMakeFiles/ML.dir/main.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/ML.dir/main.cpp.s"
-	cd /Users/Amit/Desktop/Python/ML/src && /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/Amit/Desktop/Python/ML/src/main.cpp -o CMakeFiles/ML.dir/main.cpp.s
+	cd /Users/Amit/Desktop/Python/ML/src && /usr/bin/g++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /Users/Amit/Desktop/Python/ML/src/main.cpp -o CMakeFiles/ML.dir/main.cpp.s
 
 # Object files for target ML
 ML_OBJECTS = \

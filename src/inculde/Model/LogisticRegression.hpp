@@ -9,7 +9,7 @@ namespace ML{
         size_t _rows;
         size_t _cols;
         using Core::train;
-        using Core::test;
+        using Core::predict;
         matrix<double> _mu;
         double _mean{0};
         float _threshold{0.5};
@@ -17,35 +17,21 @@ namespace ML{
             _func = [](double exp ,double p){return exp;};
         }
 
-        void test(Frame* xTestData, Frame* yTestData) override{
-            if(!this->_isTrained) return;
+        Frame* predict(Frame* xTestData) override{
+            if(!this->_isTrained) return nullptr;
             this->_rows = xTestData->_rows;
             this->_cols = xTestData->_cols;
 
             matrix<double> xTest(this->_rows,this->_cols + 1),yTest(this->_rows,1);
             
             convertToUblasMatrix(xTestData,xTest,false);
-            convertToUblasMatrix(yTestData,yTest);
 
-            this->_predic = prod(xTest,this->_coeff);
-            this->_total = this->_rows;
-            for(int i = 0; i < this->_predic.size1(); i++){
-                this->_predic(i,0) = calProb(this->_predic(i,0)) >= 0.5 ? 1 : 0; 
-                if(this->_predic(i,0) != yTest(i,0)){
-                    if(this->_predic(i,0) == 1 && yTest(i,0) == 0){
-                        this->_falseP++;
-                    }else if(this->_predic(i,0) == 0 && yTest(i,0) == 1){
-                        this->_falseN++;
-                    }
-                }else{
-                    if(this->_predic(i,0) == 1 && yTest(i,0) == 1){
-                        this->_trueP++;
-                    }else if(this->_predic(i,0) == 0 && yTest(i,0) == 0){
-                        this->_trueN++;
-                    }
-                }
-                // std::cout<<this->_predic(i,0)<<':'<<yTest(i,0)<<'\n';
+            this->_predicM = prod(xTest,this->_coeff);
+            for(int i = 0; i < this->_predicM.size1(); i++){
+                this->_predicM(i,0) = calProb(this->_predicM(i,0)) >= _threshold ? 1 : 0; 
             } 
+            setPredict();
+            return this->_predic.get();
         }
 
         void squareDueRegression() override{

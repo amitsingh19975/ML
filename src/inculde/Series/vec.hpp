@@ -1,14 +1,10 @@
 #ifndef VEC_H
 #define VEC_H
-
-#include <iostream>
-#include <vector>
-#include <cmath>
-#include <unordered_map>
-#include <initializer_list>
 #include "../algorithm/median.hpp"
+#include "../gch/headers.hpp"
 
 namespace ML{
+    using namespace boost::numeric::ublas;
 
     template<typename T = std::string>
     std::string to_string(std::string& num){
@@ -32,7 +28,7 @@ namespace ML{
     struct Series{
         std::string _type;
         std::string _header{""};
-        std::unordered_map<std::string,double> _labelMap;
+        std::unordered_map<std::string,int> _labelMap;
 
         Series(){}
         Series(std::string tag,std::string header):_type(tag), _header(header){}

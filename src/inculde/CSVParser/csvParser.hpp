@@ -1,10 +1,6 @@
 #ifndef CSV_PARSER_HPP
 #define CSV_PARSER_HPP
 
-#include <iostream>
-#include <sstream>
-#include <fstream>
-#include <vector>
 #include "../Series/vec.hpp"
 #include "../Frame/frame.hpp"
 
@@ -14,66 +10,175 @@ namespace ML{
 
         protected:
             void getHeader(std::string& headers);
-            void getData(std::string& data);
+            std::vector<std::string> parseData(std::string& data);
+            void parse(std::vector<std::string>& data);
+            void parseType();
             void normalizeFileName(std::string& fileName);
+            std::ifstream _f;
+            std::vector<bool> isDouble;
     };
 
     CSV::CSV(std::string fileName){
         this->normalizeFileName(fileName);
-        std::ifstream f(fileName);
-        if(!f){
+        _f.open(fileName);
+        if(!_f){
             throw std::runtime_error("File Not Found!");
         }
 
         std::string headers, data;
-        getline(f,headers);
+        getline(_f,headers);
         this->getHeader(headers);
         
-        while(getline(f,data)) {
-            this->getData(data);
+        this->isDouble.resize(this->_headers.size());
+        for(size_t i = 0; i < this->isDouble.size(); i++) this->isDouble[i] = true;
+
+        while(getline(_f,data)) {
+            auto d = this->parseData(data);
+            this->parse(d);
         }
-        this->_cols = this->_data.size();
-        this->_rows = this->_data.at(0)->size();
+
+        this->updateSize();
+        this->parseType();
     }
 
     void CSV::getHeader(std::string& headers){
         std::stringstream os(headers);
         std::string header;
-
-        while(getline(os,header,',')){
-            if(header[0] == '\"'){
-                this->_headers.push_back(header.substr(1,header.size()-2));
-            }
-            else{
-                this->_headers.push_back(header);
+        char c;
+        while(!os.eof()){
+            std::string temp;
+            os>>c;
+            if(c == '\"'){
+                os>>c;
+                while(c != '\"' && !os.eof()){
+                    temp +=c;
+                    os>>c;
+                }
+                if(!os.eof()) this->_headers.push_back(temp);
+            }else if (c != ','){
+                while(c != ',' && !os.eof()){
+                    temp +=c;
+                    os>>c;
+                }
+                if(!os.eof()) this->_headers.push_back(temp);
             }
         }
     }
 
-    void CSV::getData(std::string& data){
-        std::stringstream os(data);
-        std::string d;
-        if(this->_data.size() == 0){
-            int i = 0;
-            while(getline(os,d,',')){
-                if(d.at(0) == '\"'){
-                    std::unique_ptr<Series> series{new Vec<std::string>(this->_headers[i++],"string", {d.substr(1,d.size()-2)})};
-                    this->_data.push_back(std::move(series));
-                }else{
-                    std::unique_ptr<Series> series{new Vec<double>(this->_headers[i++],"double", {std::stod(d)})};
-                    this->_data.push_back(std::move(series));
+    std::vector<std::string> CSV::parseData(std::string& data){
+        std::stringstream os(data),osT;
+        std::vector<std::string> d;
+        char c;
+        bool isReading = true;
+        std::stack<char> s;
+        os>>std::noskipws;
+        while(true){
+            os>>c;
+            std::string temp;
+            if((c == '\"' || !s.empty())){
+                if(!s.empty()) osT<<'\n'<<c;
+                else s.push(c);
+                os>>c;
+                while(!os.eof()){
+                    if(c == '\"' && os.peek() == ',') {
+                        if(!s.empty()) s.pop();
+                        temp = osT.str();
+                        d.push_back(temp);
+                        break;
+                    }
+                    else if(c == '\"' && os.peek() == ' '){
+                        osT<<c;
+                        os>>c;
+                        int count = 1;
+                        while(c == ' ' && !os.eof() ) {
+                            osT<<c;
+                            count++;
+                            os>>c;
+                        }
+                        if(c == ',') {
+                            std::string t = osT.str();
+                            t = t.substr(0, t.size() - count);
+                            osT.str(t);
+                            osT.clear();
+                            if(!s.empty()) s.pop();
+                            temp = osT.str();
+                            d.push_back(temp);
+                            break;
+                        };
+                    }else{
+                        osT<<c;
+                        os>>c;
+                    }
                 }
+            }else{
+                bool exe = false;
+                while(c != ',' && !os.eof()){
+                    temp +=c;
+                    os>>c;
+                    exe = true;
+                }
+                if(exe || (c == ',' && os.peek() == ',')) d.push_back(temp);
             }
-        }else{
-            int i = 0;
-            while(getline(os,d,',')){
-                if(d.at(0) == '\"'){
-                    static_cast<Vec<std::string>*>(this->_data[i++].get())->push_back(d.substr(1,d.size()-2));
+            if(os.eof()){
+                if(!s.empty()){
+                    getline(_f,data);
+                    os.str(data);
+                    os.clear();
                 }else{
-                    static_cast<Vec<double>*>(this->_data[i++].get())->push_back(std::stod(d));
+                    break;
                 }
+            }else{
+                osT.str("");
+                osT.clear();
             }
         }
+        for(auto &str : d){
+            auto pos = str.find("\"\"");
+            while(pos != std::string::npos){
+                str.replace(pos,2,"\"");
+                pos = str.find("\"\"");
+            }
+        }
+        return d;
+    }
+
+    void CSV::parseType(){
+        auto size = this->_headers.size();
+        for(auto i = 0; i < isDouble.size(); i++){
+            if(isDouble[i]){
+                SeriesUnique series{new Vec<double>(this->_headers[i],"double", {std::stod(this->at<std::string>(0,i))})};
+                for(auto j = 1; j <this->_rows; j++){
+                    series->push_d(std::stod(this->at<std::string>(j,i)));
+                }
+                this->_data[i] = std::move(series);
+            }
+        }
+
+    }
+    void CSV::parse(std::vector<std::string>& data){
+        auto size = this->_headers.size();
+        if(data.size() != size) return;
+        if(this->_data.empty()){
+            for(size_t i = 0; i < size; i++){
+                try{
+                    (void)stod(data[i]);
+                }catch(...){
+                    isDouble[i] = false;
+                }
+                SeriesUnique series{new Vec<std::string>(this->_headers[i],"string", {data[i]})};
+                this->_data.push_back(std::move(series));
+            }
+        }else{
+            for(size_t i = 0; i < size; i++){
+                try{
+                    (void)stod(data[i]);
+                }catch(...){
+                    isDouble[i] = false;
+                }
+                this->_data[i]->push_s(data[i]);
+            }
+        }
+
     }
 
     void CSV::normalizeFileName(std::string& fileName){

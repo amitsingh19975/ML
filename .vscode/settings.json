@@ -26,7 +26,11 @@
         "istream": "cpp",
         "locale": "cpp",
         "thread": "cpp",
-        "utility": "cpp"
+        "utility": "cpp",
+        "unordered_map": "cpp",
+        "ios": "cpp",
+        "fstream": "cpp",
+        "sstream": "cpp"
     },
     "C_Cpp.configurationWarnings": "Disabled"
 }
