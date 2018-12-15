@@ -27,7 +27,7 @@ namespace ML{
     void KMean::train(Frame* xTrainData, Frame* yTrainData){
         this->_clustors.resize(this->_k,2);
         auto x = Frame::cast(xTrainData->at(0));
-        auto y = Frame::cast(yTrainData->at(1));
+        auto y = Frame::cast(yTrainData->at(0));
         matrix<double> m(this->_k,2);
         this->_label = yTrainData->getLabel(0);
         
@@ -74,9 +74,9 @@ namespace ML{
                 counts[clus] ++;
             }
 
-            for(int i = 0; i < this->_k; i++){
-                std::cout<<counts.at(i)<<'\n';
-            }
+            // for(int i = 0; i < this->_k; i++){
+            //     std::cout<<counts.at(i)<<'\n';
+            // }
 
             for(size_t clus = 0; clus < this->_k; clus++){
                 auto const count = std::max<size_t>(1, counts[clus]);

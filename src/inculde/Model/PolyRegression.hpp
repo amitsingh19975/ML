@@ -8,15 +8,17 @@ namespace ML{
     
     public:
         matrix<double>  _w;
-        matrix<double>  _errorInPredic;
         using Core::train;
         using Core::predict;
+        //lambda function how to init independent variable
         std::function<double(double,double)> _func = [](double exp, double pow){return std::pow(exp,pow);};
 
         PolyRegression(int dimension = 1,bool ortho = false):_dimension(dimension + 1),_ortho(ortho){_coeff.resize(dimension + 1, 1);}
-
+        //returns r^2
         virtual double RSquared();
+        //returns adjusted r^2
         virtual double adjRSquared();
+        //get the regression coeff
         std::vector<double> getCoeff() const noexcept;
         void train(Frame* xTrainData, Frame* yTrainData) override;
         Frame* predict(Frame* xTrainData) override;
@@ -25,17 +27,21 @@ namespace ML{
         int             _dimension;
         bool            _ortho{false};
         bool            _isTrained{false};
-
+        //utility function for training
         void fit();
         virtual void convertToUblasMatrix(Frame* v,matrix<double> &m,bool isY = true);
         void transposeMatrix(matrix<double>& m);
         bool inverseMatrix(matrix<double>& m, matrix<double>& inv);
+        //calculates weights
         virtual void calWeights();
+        //calculates regression coeff
         virtual void calCoeff();
         virtual void squareDueRegression();
         virtual void squareDueResidual(matrix<double> &m);
+        //get the orthogonal matrix
         void getOrthoMatrix(matrix<double>& ortho);
         
+        //debug function
         template<typename T>
         void print(matrix<T> const& m){
             for(int i = 0; i < m.size1(); i++){
@@ -151,7 +157,6 @@ namespace ML{
         convertToUblasMatrix(xTestData,xTest);
 
         this->_predicM.resize(xTest.size1(),1);
-        this->_errorInPredic.resize(xTest.size1(),1);
 
         for(int i = 0; i < xTest.size1(); i++) this->_predicM(i,0) = 0;
 

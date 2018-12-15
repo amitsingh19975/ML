@@ -5,7 +5,8 @@
 
 namespace ML{
     using namespace boost::numeric::ublas;
-
+    using namespace Eigen;
+    //Converting unknown type to string
     template<typename T = std::string>
     std::string to_string(std::string& num){
         return num;
@@ -18,16 +19,18 @@ namespace ML{
         for(; i >= 0; i--) if(temp.at(i) != '0' || temp.at(i) == '.') break;
         return temp.substr(0,i);
     }
-
+    //helper function for indent
     template<typename T>
     void indent(T& num,std::vector<int>& lenghtOfHeaderString, int j, int in = 5){
         in += ((int)lenghtOfHeaderString.at(j) - (int)to_string(num).size());
         for(int i = 0; i < in; i++) std::cout<<' ';
     }
-
+    //base class for vector for dynamic casting
     struct Series{
+        //store the type of vector
         std::string _type;
         std::string _header{""};
+        //store label after converting string to number
         std::unordered_map<std::string,int> _labelMap;
 
         Series(){}
@@ -35,22 +38,33 @@ namespace ML{
         size_t _size{0};
         size_t size() const noexcept{return _size;}
         virtual ~Series() = default;
-        
+
         virtual double mean() = 0;
+        //returns the population variance
         virtual double variance() = 0;
+        //returns the sample variance 
         virtual double varianceS() = 0;
+        //return the population standard deviation
         virtual double std() = 0;
+        //return the sample standard deviation
         virtual double stdS() = 0;
         virtual double median() = 0;
         virtual double max() = 0;
         virtual double min() = 0;
+        //returns the number of unique elements in a vector
         virtual std::unique_ptr<std::unordered_map<std::string, int>> unique() = 0;
+        //use to apply a function to whole vector
         virtual void apply(std::function<double(double)> func) = 0;
+        //prints the vector
         virtual void print(int numberOfData = -1) const = 0;
         virtual void swap(size_t i, size_t j) = 0;
+        //use to push double in vector
         virtual void push_d(double val) = 0;
+        //pushing the string
         virtual void push_s(std::string val) = 0;
+        //return the elements at giving postion i of type double
         virtual double at(int i) = 0;
+        //return the elements at giving postion i of type string
         virtual std::string atS(int i) = 0;
 
     };
@@ -78,7 +92,7 @@ namespace ML{
             this->_type = type;
             this->_size = _data.size();
         }
-        
+        //Generic push_back api
         void push_back(T data){
            this-> _data.push_back(data);
            this->_size = this->_data.size();

@@ -2,6 +2,7 @@
 #define FRAME_HPP
 
 #include "../Series/vec.hpp"
+#include <iomanip>
 
 namespace ML{
     struct Frame;
@@ -10,8 +11,9 @@ namespace ML{
     using FrameShared = std::shared_ptr<Frame>;
     using FrameUnique = std::unique_ptr<Frame>;
     using SeriesUnique = std::unique_ptr<Series>;
+    //DataFrame similar to pandas dataframe 
     struct Frame{
-
+        //stores the series
         std::vector<SeriesUnique> _data;
         std::vector<std::string> _headers;
 
@@ -45,18 +47,27 @@ namespace ML{
         }
         template<typename T>
         Frame(std::initializer_list<std::initializer_list<T>> data);
-
+        //prints the whole frame
         void print(int size = -1, int ind = 5) const noexcept;
+        //prints the headers
         void printHeader(int ind = 5) const noexcept;
+        //prints the heading and data type
         void info() const noexcept;
+        //use to add series to frame of type unique_ptr
         bool addSeries(SeriesUnique series);
+        //use to add series to frame of type series
         bool addSeries(Series* series);
+        //converts label to number
+        void labelToNumber(int idx);
+        //converts number to label
+        void numberToLabel(int idx);
+        //apply a function to frame
+        void apply(std::function<double(double)> func);
+        //get series at a given postion
+        Series* at(int i);
+        //add Vec of given type
         template<typename T> bool addVec(Vec<T>* vec);
         template<typename U = double> U at(int i, int j);
-        Series* at(int i);
-        void labelToNumber(int idx);
-        void numberToLabel(int idx);
-        void apply(std::function<double(double)> func);
 
         Series* operator[](int i){return this->_data.at(i % this->_cols).get();}
         FrameShared operator[](std::initializer_list<std::string> l){
@@ -72,44 +83,62 @@ namespace ML{
                 return this->_data.at(idx).get();
             }
         }
-        size_t size() const noexcept{return this->_data.size();}
-
+    
+        size_t rowSize() const noexcept{return _rows;}
+        size_t colSize() const noexcept{return _cols;}
+        //removes the column
         SeriesUnique dropCol(int idx); 
+        //returns columns in a given range
         FrameShared colSlice(size_t start, size_t end = std::numeric_limits<size_t>::max()); 
+        //returns columns in a given range using vector of indices
         FrameShared colSlice(std::vector<int> l); 
+        //returns columns in a given range using column name
         FrameShared colSlice(std::initializer_list<std::string> l); 
+        //TODO: implementing drop column
         std::vector<SeriesUnique> dropRow(int idx); 
+        //splits the data set in a given percentage and using random seed
+        //returns train, test
         Pair split(float trainPercentage = 30, int randomSeed = 42); 
+        //splits the X and y in a given percentage and using random seed
+        //returns X_train, X_test, y_train, y_test
         Tuple split(FrameShared& X, FrameShared& y, float trainPercentage = 30, int randomSeed = 42); 
+        //randomizing rows
         static void randomize(Frame* frame, int seed = 42, int iteration = 50); 
 
         double mean(int col){return this->at(col)->mean();}
         double std(int col){return this->at(col)->std();}
         double variance(int col){return this->at(col)->variance();}
         double median(int col){return this->at(col)->median();}
+        //normalize data between -1 and 1
         void normalize(double val = 0);
-        double corrcoef(int i, int j);
-        
+        //returns correlation coefficient
+        double corrcoef(int i, int j) noexcept;
+        //returns correlation coefficient matrix of every possible pair
+        void corrcoefMatrix() noexcept;
+        //return the unique elements in a given column
         template<typename T = double>
         std::unique_ptr<std::unordered_map<T, int>> unique(int col);
-
+        //use to cast series into Vec struct
         template<typename U = double>
         static Vec<U>* cast(Series* data){
             return static_cast<Vec<U>*>(data);
         }
-
+        //get the label
         std::unordered_map<std::string,int> getLabel(int idx) noexcept{
             return this->_data[idx % this->_cols]->_labelMap;
         }
+        //set the label
         void setLabel(std::unordered_map<std::string,int> label, int idx) noexcept{
             this->_data[idx % this->_cols]->_labelMap = label;
         }
     protected:
+
         void indentUtil(int indent = 0) const noexcept{
             for(int i = 0; i< indent; i++){
                 std::cout<<' ';
             }
         }
+        //updates the rows and cols
         void updateSize() noexcept{
             this->_cols = this->_data.size();
             if(this->_cols != 0)
@@ -117,6 +146,7 @@ namespace ML{
             else
                 this->_rows = 0;
         }
+        // return true if frame is empty
         bool isEmpty() const noexcept{
             if(this->_cols == 0 || this->_rows == 0) {
                 std::string str = "Out of Bound!\nRow Size: " + std::to_string(this->_rows) + "\nCol Size: " + std::to_string(this->_cols);
@@ -559,7 +589,15 @@ namespace ML{
         }
     }
 
-    double Frame::corrcoef(int i, int j){
+    void Frame::corrcoefMatrix() noexcept{
+        for(auto i = 0; i < this->_cols; i++){
+            for(auto j = 0; j < this->_cols; j++){
+                std::cout<<std::setw(10)<<this->corrcoef(i,j);
+            }
+            std::cout<<'\n';
+        }
+    }
+    double Frame::corrcoef(int i, int j) noexcept{
         if(this->_cols <= i || this->_cols <= j ){
             std::cerr<< "OutOfBound: " + std::to_string(__LINE__)<<'\n';
             return 0;
@@ -580,7 +618,13 @@ namespace ML{
         for(int i = 0; i < 20; i++) std::cout<<'-';
         puts("");
         std::cout<<'('<<_rows<<','<<_cols<<')'<<'\n';
-        
+        size_t maxS = 0;
+        for(auto i = 0; i < this->_headers.size(); i++) maxS = std::max(maxS,_headers[i].size());
+        for(auto i = 0; i < this->_headers.size(); i++){
+            std::cout   <<std::setw(std::to_string(_headers.size()).size())
+                        <<i<<':'<<_headers[i]<<std::setw(maxS + 10 - _headers[i].size())
+                        <<": "<<this->_data[i]->_type<<'\n';
+        }
     }
 }
 
