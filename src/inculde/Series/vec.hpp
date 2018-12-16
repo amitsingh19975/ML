@@ -5,7 +5,6 @@
 
 namespace ML{
     using namespace boost::numeric::ublas;
-    using namespace Eigen;
     //Converting unknown type to string
     template<typename T = std::string>
     std::string to_string(std::string& num){

@@ -8,6 +8,7 @@
 #include "Model/KMean.hpp"
 #include "algorithm/PolynomialDerivative.hpp"
 #include "algorithm/PolynomialRoots.hpp"
+#include "algorithm/Eigen.hpp"
 
 
 #endif // HEADERS_H

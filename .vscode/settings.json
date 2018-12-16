@@ -31,7 +31,14 @@
         "ios": "cpp",
         "fstream": "cpp",
         "sstream": "cpp",
-        "iomanip": "cpp"
+        "iomanip": "cpp",
+        "__locale": "cpp",
+        "optional": "cpp",
+        "variant": "cpp",
+        "cstdint": "cpp",
+        "random": "cpp",
+        "eigen": "cpp",
+        "eigenvalues": "cpp"
     },
     "C_Cpp.configurationWarnings": "Disabled"
 }

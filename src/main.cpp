@@ -40,9 +40,12 @@ int main(){
     // // cout<<k.adjRSquared()<<'\n';
     // // m.confusionMatrix();
     // // m.listRates();
-    //x3 − 3x2 + 3x − 5 = 0
-    std::vector<double> coeff = {1,6,5};
-    Polynomial p (coeff);
-    findRoots(p);
+    std::vector<std::vector<double>> M = {
+        {3.0,1.0},
+        {1.0,3.0},
+    };
+    auto s = M.size();
+        
+    auto [val,vec] = EigenValuesVectors(M);
     return 0;
 }
