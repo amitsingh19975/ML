@@ -6,9 +6,7 @@
 #include "Model/PolyRegression.hpp"
 #include "Model/LogisticRegression.hpp"
 #include "Model/KMean.hpp"
-#include "algorithm/PolynomialDerivative.hpp"
-#include "algorithm/PolynomialRoots.hpp"
-#include "algorithm/Eigen.hpp"
+#include "algorithm/PCA.hpp"
 
 
 #endif // HEADERS_H

@@ -50,6 +50,7 @@ namespace ML{
         virtual double median() = 0;
         virtual double max() = 0;
         virtual double min() = 0;
+        virtual double sum() = 0;
         //returns the number of unique elements in a vector
         virtual std::unique_ptr<std::unordered_map<std::string, int>> unique() = 0;
         //use to apply a function to whole vector
@@ -128,6 +129,17 @@ namespace ML{
             return (this->_data.at(i));
         }
 
+        double sum() final override{
+            double m = 0;
+            if(this->_data.empty()) return 0;
+            if constexpr(std::is_same_v<T, std::string>) return 0;
+            else{
+                for(auto num : this->_data){
+                    m += num;
+                }
+            }
+            return m;
+        }
         double mean() final override{
             double m = 0;
             if(this->_data.empty()) return 0;

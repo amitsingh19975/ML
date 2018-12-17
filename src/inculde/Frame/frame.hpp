@@ -111,6 +111,7 @@ namespace ML{
         double median(int col){return this->at(col)->median();}
         //normalize data between -1 and 1
         void normalize(double val = 0);
+        void Zscore();
         //returns correlation coefficient
         double corrcoef(int i, int j) noexcept;
         //returns correlation coefficient matrix of every possible pair
@@ -405,6 +406,19 @@ namespace ML{
         this->_data[idx] = std::move(newCol);
     }
 
+    void Frame::Zscore(){
+        if(isEmpty()) {
+            std::cerr<< "Line: " + std::to_string(__LINE__)<<'\n';
+            return;
+        }
+        for(auto const& v: this->_data){
+            double mean = v->mean();
+            double std = v->std();
+            v->apply([&](double el){
+                return (el - mean) / (mean - std);
+            });
+        }
+    }
     void Frame::normalize(double val){
         if(isEmpty()) {
             std::cerr<< "Line: " + std::to_string(__LINE__)<<'\n';

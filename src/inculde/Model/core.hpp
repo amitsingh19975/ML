@@ -14,10 +14,12 @@ namespace ML{
         double          _mean{0};
         matrix<double>  _predicM;
         FrameUnique     _predic;
-        virtual void train(Frame* xTrainData, Frame* yTrainData) = 0;
+        virtual void train(Frame* xTrainData, Frame* yTrainData){}
+        virtual void train(Frame* xTrainData){}
         //return predicted frame
-        virtual Frame* predict(Frame* xTestData) = 0;
+        virtual Frame* predict(Frame* xTestData){return nullptr;}
         void train(std::shared_ptr<Frame>& xTrainData, std::shared_ptr<Frame>& yTrainData){this->train(xTrainData.get(),yTrainData.get());}
+        void train(std::shared_ptr<Frame>& xTrainData){this->train(xTrainData.get());}
         //return predicted frame
         Frame* predict(std::shared_ptr<Frame>& xTestData){return this->predict(xTestData.get());}
         //init _predic

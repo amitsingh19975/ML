@@ -14,7 +14,7 @@ namespace ML{
 
         KMean(int k = 1, int numberOfIterations = 10):_k(k),_numberOfIterations(numberOfIterations){}
 
-        void train(Frame* xTrainData, Frame* yTrainData) override;
+        void train(Frame* xTrainData) override;
         Frame* predict(Frame* xTestData) override;
     protected:
         int randomIdx() const noexcept;
@@ -24,12 +24,12 @@ namespace ML{
         }
     };
 
-    void KMean::train(Frame* xTrainData, Frame* yTrainData){
+    void KMean::train(Frame* xTrainData){
         this->_clustors.resize(this->_k,2);
         auto x = Frame::cast(xTrainData->at(0));
-        auto y = Frame::cast(yTrainData->at(0));
+        auto y = Frame::cast(xTrainData->at(1));
         matrix<double> m(this->_k,2);
-        this->_label = yTrainData->getLabel(0);
+        this->_label = xTrainData->getLabel(1);
         
         for(int i = 0; i < this->_k; i++) {
             int idx = this->randomIdx();
@@ -88,29 +88,9 @@ namespace ML{
         std::cout<<this->_clustors<<'\n';
     }
     Frame* KMean::predict(Frame* xTestData){
-        // auto x = Frame::cast(xTestData->at(0));
+        auto x = Frame::cast(xTestData->at(0));
+        auto y = Frame::cast(xTestData->at(1));
 
-        // matrix<double> count(this->_k,1);
-
-        // for(int  i = 0 ; i < this->_k; i++) count(i,0) = 0;
-
-        // for(size_t j = 0; j < x->size(); j++){
-        //         double bestDis = std::numeric_limits<double>::max();
-        //         size_t bestClus = 0;
-
-        //         for(size_t clus = 0; clus < this->_k;clus++){
-        //             double const distance = distanceCal(x->_data.at(j),
-        //             y->_data.at(j),this->_clustors(clus,0),this->_clustors(clus,1));
-
-        //             if(distance < bestDis){
-        //                 bestDis = distance;
-        //                 bestClus = clus;
-        //             }
-        //         }
-        //     count(bestClus,0)++;
-        // }
-
-        // std::cout<<count<<'\n';
         return nullptr;
 
     }

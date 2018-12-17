@@ -7,9 +7,9 @@ using namespace std;
 
 int main(){
     // // cout<<setprecision(numeric_limits<double>::max_digits10);
-    // string trainF = "/Users/Amit/Desktop/Python/ML/test/College_Data";
+    string trainF = "/Users/Amit/Desktop/Python/ML/test/College_Data";
     // string testF = "/Users/Amit/Desktop/Python/ML/test/data";
-    // CSV frameTrain(trainF);
+    CSV frameTrain(trainF);
     // // CSV frameTest(testF);
     // // std::vector<std::vector<double>> trainD = {
     // //     {1,2,3,4,5,6,7,8},
@@ -23,29 +23,29 @@ int main(){
     // // frameTrain.print();
     // // f.print();
     // // frameTrain.normalize();
-    // frameTrain.dropCol(0);
-    // frameTrain.labelToNumber(0);
-    // auto y = frameTrain[{"Private"}];
-    // auto X = frameTrain.colSlice(0);
+    frameTrain.dropCol(0);
+    // // frameTrain.labelToNumber(0);
+    auto y = frameTrain[{"Private"}];
+    auto X = frameTrain.colSlice(0);
 
     // // auto X = frameTrain[{"radius_mean", "texture_mean", "smoothness_mean",
     // //    "compactness_mean", "symmetry_mean", "fractal_dimension_mean",
     // //    "radius_se", "texture_se", "smoothness_se", "compactness_se",
     // //    "symmetry_se", "fractal_dimension_se"}];
+    PCA p(X,17);
+    FrameShared f = p.getReducedFrame();
+    f->print(5,10);
     // auto [X_train,X_test,y_train,y_test] = frameTrain.split(X,y,30);
     // KMean k(3);
     // k.train(X_train,y_train);
-    // // auto p = k.predict(X_test);
-    // // Metrics m(y_test,p);
-    // // cout<<k.adjRSquared()<<'\n';
-    // // m.confusionMatrix();
-    // // m.listRates();
-    std::vector<std::vector<double>> M = {
-        {3.0,1.0},
-        {1.0,3.0},
-    };
-    auto s = M.size();
-        
-    auto [val,vec] = EigenValuesVectors(M);
+    // auto q = k.predict(X_test,y_test);
+    // Metrics m(y_test,p);
+    // cout<<k.adjRSquared()<<'\n';
+    // m.confusionMatrix();
+    // m.listRates();
+    // std::vector<std::vector<double>> M = {
+    //     {3.0,1.0},
+    //     {1.0,3.0},
+    // };
     return 0;
 }
