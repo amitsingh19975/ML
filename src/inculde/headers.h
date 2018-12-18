@@ -7,6 +7,7 @@
 #include "Model/LogisticRegression.hpp"
 #include "Model/KMean.hpp"
 #include "algorithm/PCA.hpp"
+#include "PrettyPrint/prettyPrint.hpp"
 
 
 #endif // HEADERS_H
