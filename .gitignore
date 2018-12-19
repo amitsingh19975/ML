@@ -46,3 +46,7 @@ CMakeFiles/
 #mac
 .DS_Store
 
+.ninja_deps
+.ninja_logs
+*.ninja
+
