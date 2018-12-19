@@ -54,15 +54,20 @@ namespace ML{
     }
 
     struct PrettyPrintData{
-        using stringMatrix      = std::vector<std::vector<std::string>>; 
-        using stringArray       = std::vector<std::string>; 
-        using sizeArray         = std::vector<size_t>; 
-        stringMatrix            _body;
-        stringArray             _headers;
-        sizeArray               _width;
+        template <typename T>
+        using Vmatrix           = std::vector<std::vector<T>>;
+        template <typename T>
+        using VecArray          = std::vector<T>;
+        Vmatrix<std::string>     _body;
+        VecArray<std::string>   _headers;
+        VecArray<size_t>        _width;
         PrettyPrintData(){}
         PrettyPrintData(Frame* frame);
         PrettyPrintData(Series* series);
+        template<typename T>
+        PrettyPrintData(Vmatrix<T>& m);
+        template<typename T>
+        PrettyPrintData(VecArray<T>& m);
     };
 
     struct Color{
@@ -127,18 +132,34 @@ namespace ML{
     }
 
     struct PPrint{
+        template <typename T>
+        using Vmatrix      = std::vector<std::vector<T>>; 
+        template <typename T>
+        using VecArray     = std::vector<T>;
         static  Color   ColorHeaderFG;
         static  Color   ColorHeaderBG;
         static  Color   ColorBody;
         static  auto    print(Frame* frame, uint32_t indent = 5
                             , uint32_t const maxLine = 2, uint32_t maxWidth = 20) -> void;
+        static  auto    print(Frame& frame, uint32_t indent = 5
+                            , uint32_t const maxLine = 2, uint32_t maxWidth = 20) -> void;
+        static  auto    print(FrameShared& frame, uint32_t indent = 5
+                            , uint32_t const maxLine = 2, uint32_t maxWidth = 20) -> void;
         static  auto    print(Series* series, uint32_t indent = 5
+                            , uint32_t const maxLine = 2, uint32_t maxWidth = 20) -> void;
+        template<typename T>
+        static  auto    print(Vmatrix<T>& , uint32_t indent = 5
+                            , uint32_t const maxLine = 2, uint32_t maxWidth = 20) -> void;
+        template<typename T>
+        static  auto    print(VecArray<T>& , uint32_t indent = 5
                             , uint32_t const maxLine = 2, uint32_t maxWidth = 20) -> void;
     protected:
         static  auto    printColumn(PrettyPrintData& p, size_t idx, size_t colPos, size_t rowPos,size_t min, size_t max,
                                  uint32_t indent, uint32_t const maxLine = 2, uint32_t maxWidth = 20) -> int;
         static  auto    wordWrap(std::vector<std::string>& w, size_t maxW) -> std::vector<std::pair<size_t,size_t>>;
         static  auto    split(std::string& line,std::vector<std::string>& w) -> void;
+        static  auto    printHelper(PrettyPrintData& p, uint32_t indent = 5
+                            , uint32_t const maxLine = 2, uint32_t maxWidth = 20) -> void;
     };
 
     Color PPrint::ColorHeaderBG = Color(BG::GREEN);
@@ -149,7 +170,7 @@ namespace ML{
         _headers.push_back(series->_header);
         _width[0] = (_headers.back().size());
 
-        stringArray temp(series->size());
+        VecArray<std::string> temp(series->size());
         for(auto j = 0; j < series->size(); j++){
             if(series->_type == "string"){
                 _width[0] = std::max(_width[0],series->atS(j).size());
@@ -166,7 +187,7 @@ namespace ML{
         for(auto i = 0; i < _headers.size(); i++) _width[i] = _headers[i].size();
 
         for(auto i = 0; i < frame->colSize(); i++){
-            stringArray temp(frame->rowSize());
+            VecArray<std::string> temp(frame->rowSize());
             for(auto j = 0; j < frame->rowSize(); j++){
                 if(frame->at(i)->_type == "string"){
                     _width[i] = std::max(_width[i],frame->at(i)->atS(j).size());
@@ -179,24 +200,61 @@ namespace ML{
             _body.push_back(temp);
         }
     }
+    template<typename T>
+    PrettyPrintData::PrettyPrintData(Vmatrix<T>& m):_width(m.size()),_headers(m.size()){
+        for(int i = 0; i < m.size(); i++) _headers[i] = "";
+        _width.resize(_headers.size());
+        for(int i = 0; i < m.size(); i++) _width[i] = _headers[i].size();
 
-    auto PPrint::print(Frame* frame, uint32_t indent, uint32_t const maxLine, uint32_t maxWidth) -> void{
-        PrettyPrintData p(frame);
-        // max = max == std::numeric_limits<size_t>::max() ? p._body[0].size() : max;
+        for(int i = 0; i < m.size(); i++){
+            VecArray<std::string> temp;
+            for(int j = 0; j < m[0].size(); j++){
+                if constexpr(std::is_same_v<T,std::string>){
+                    temp.push_back(m[i][j]);
+                }else{
+                    temp.push_back(std::to_string(m[i][j]));
+                }
+                _width[i] = std::max(temp.back().size(),_width[i]);
+            }
+            _body.push_back(temp);
+        }
+    }
+    template<typename T>
+    PrettyPrintData::PrettyPrintData(VecArray<T>& m):_width(1),_headers(1){
+        _headers[0] = "";
+        _width[0] = _headers[0].size();
+
+        VecArray<std::string> temp;
+        for(int j = 0; j < m.size(); j++){
+            if constexpr(std::is_same_v<T,std::string>){
+                temp.push_back(m[j]);
+            }else{
+                temp.push_back(std::to_string(m[j]));
+            }
+            _width[0] = std::max(temp.back().size(),_width[0]);
+        }
+        _body.push_back(temp);
+    }
+
+    auto PPrint::printHelper(PrettyPrintData& p, uint32_t indent, uint32_t const maxLine, uint32_t maxWidth) -> void{
         Terminal::init();
         auto [row, col] = Terminal::getWindowSize();
-        auto [x,Y] = Terminal::getCursorPosition();
-        // int totalHeight = maxLine + maxLine * max + max + 1;
         int szOfCol = (maxWidth + 5);
         size_t max = (row - maxLine - 1)/(maxLine + 1);
+        size_t totalHeight = max;
         int totalWidth = ((col - 10.0) / szOfCol) ;
         size_t j = 0,d = 0;
         Terminal::clearScreen();
+        std::string mess = "Press CTRL + q or CTRL + e to quit!";
         while(1){
-            int  k = 0;
+            int k = 0;
+            int y = 0;
             for(int i = j; i < std::min(j + totalWidth,p._body.size()); i++){
-                printColumn(p,i,k++,0,d,max,indent,maxLine,maxWidth);
+                y = printColumn(p,i,k++,0,d,max,indent,maxLine,maxWidth);
             }
+            Terminal::setCursor(0,y);
+            write(STDOUT_FILENO, mess.c_str(),mess.size());
+            Terminal::setCursor(0,y + 1);
             int c = Terminal::keyEvent();
             switch(c){
                 case CTRL_KEY('e'):
@@ -218,7 +276,7 @@ namespace ML{
                     }
                     break;
                 case ARROW_DOWN:
-                    if(d < p._body[0].size() - 1){
+                    if(d < p._body[0].size() - totalHeight){
                         d++;
                         max++;
                         Terminal::clearScreen();
@@ -235,45 +293,35 @@ namespace ML{
         }
         Terminal::disable();
     }
+    
+    auto PPrint::print(Frame* frame, uint32_t indent, uint32_t const maxLine, uint32_t maxWidth) -> void{
+        PrettyPrintData p(frame);
+        PPrint::printHelper(p, indent,maxLine,maxWidth);
+    }
+    
+    auto PPrint::print(Frame& frame, uint32_t indent, uint32_t const maxLine, uint32_t maxWidth) -> void{
+        PrettyPrintData p(&frame);
+        PPrint::printHelper(p, indent,maxLine,maxWidth);
+    }
+    
+    auto PPrint::print(FrameShared& frame, uint32_t indent, uint32_t const maxLine, uint32_t maxWidth) -> void{
+        PrettyPrintData p(frame.get());
+        PPrint::printHelper(p, indent,maxLine,maxWidth);
+    }
+    
     auto PPrint::print(Series* series, uint32_t indent, uint32_t const maxLine, uint32_t maxWidth) -> void{
         PrettyPrintData p(series);
-        // max = max == std::numeric_limits<size_t>::max() ? p._body[0].size() : max;
-        Terminal::init();
-        auto [row, col] = Terminal::getWindowSize();
-        auto [x,Y] = Terminal::getCursorPosition();
-        // int totalHeight = maxLine + maxLine * max + max + 1;
-        int szOfCol = (maxWidth + 5);
-        size_t max = (row - maxLine - 1)/(maxLine + 1);
-        int totalWidth = ((col - 10.0) / szOfCol);
-        int d = 0;
-        Terminal::clearScreen();
-        while(1){
-            printColumn(p,0,0,0,d,max,indent,maxLine,maxWidth);
-            int c = Terminal::keyEvent();
-            switch(c){
-                case CTRL_KEY('e'):
-                case CTRL_KEY('q'):
-                    write(STDOUT_FILENO, "\x1b[2J", 4);
-                    write(STDOUT_FILENO, "\x1b[H", 3);
-                    exit(0);
-                    break;
-                case ARROW_DOWN:
-                    if(d < p._body[0].size() - 1){
-                        d++;
-                        max++;
-                        Terminal::clearScreen();
-                    }
-                    break;
-                case ARROW_UP:
-                    if(d >0){
-                        d--;
-                        max--;
-                        Terminal::clearScreen();
-                    }
-                    break;
-            }
-        }
-        Terminal::disable();
+        PPrint::printHelper(p, indent,maxLine,maxWidth);
+    }
+    template<typename T>
+    auto PPrint::print(Vmatrix<T>& m, uint32_t indent, uint32_t const maxLine, uint32_t maxWidth) -> void{
+        PrettyPrintData p(m);
+        PPrint::printHelper(p, indent,maxLine,maxWidth);
+    }
+    template<typename T>
+    auto PPrint::print(VecArray<T>& m, uint32_t indent, uint32_t const maxLine, uint32_t maxWidth) -> void{
+        PrettyPrintData p(m);
+        PPrint::printHelper(p, indent,maxLine,maxWidth);
     }
 
     auto PPrint::printColumn(PrettyPrintData& p, size_t idx, size_t colPos, size_t rowPos,

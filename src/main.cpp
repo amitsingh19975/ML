@@ -10,12 +10,11 @@ int main(){
     string trainF = "/Users/Amit/Desktop/Python/ML/test/College_Data";
     // string testF = "/Users/Amit/Desktop/Python/ML/test/data";
     CSV frameTrain(trainF);
-    // PPrint::print(&frameTrain);
     // // CSV frameTest(testF);
-    // // std::vector<std::vector<double>> trainD = {
-    // //     {1,2,3,4,5,6,7,8},
-    // //     {1,2,3,4,5,6,7,8}
-    // // };
+    std::vector<double> trainD = {
+        {1,2,3,4,5,6,7,8}
+    };
+    PPrint::print(trainD);
     // // std::vector<std::vector<double>> testD = {
     // //     {5,6,7,8},
     // //     {5,6,7,8}
