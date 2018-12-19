@@ -1,7 +1,0 @@
-[
-{
-  "directory": "/Users/Amit/Desktop/Python/ML/build",
-  "command": "/usr/bin/clang++   -I/usr/local/include -isystem /usr/local/include/eigen3  -g -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.14.sdk   -std=c++1z -o src/CMakeFiles/ML.dir/main.cpp.o -c /Users/Amit/Desktop/Python/ML/src/main.cpp",
-  "file": "/Users/Amit/Desktop/Python/ML/src/main.cpp"
-}
-]
