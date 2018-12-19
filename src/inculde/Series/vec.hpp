@@ -4,7 +4,6 @@
 #include "../gch/headers.hpp"
 
 namespace ML{
-    using namespace boost::numeric::ublas;
     //Converting unknown type to string
     template<typename T = std::string>
     std::string to_string(std::string& num){
@@ -38,23 +37,25 @@ namespace ML{
         size_t size() const noexcept{return _size;}
         virtual ~Series() = default;
 
-        virtual double mean() = 0;
+        virtual double mean() const noexcept = 0;
         //returns the population variance
-        virtual double variance() = 0;
+        virtual double variance() const noexcept = 0;
         //returns the sample variance 
-        virtual double varianceS() = 0;
+        virtual double varianceS() const noexcept = 0;
         //return the population standard deviation
-        virtual double std() = 0;
+        virtual double std() const noexcept = 0;
         //return the sample standard deviation
-        virtual double stdS() = 0;
-        virtual double median() = 0;
-        virtual double max() = 0;
-        virtual double min() = 0;
-        virtual double sum() = 0;
+        virtual double stdS() const noexcept = 0;
+        virtual double median() noexcept = 0;
+        virtual double max() const noexcept = 0;
+        virtual double min() const noexcept = 0;
+        virtual double sum() const noexcept = 0;
         //returns the number of unique elements in a vector
         virtual std::unique_ptr<std::unordered_map<std::string, int>> unique() = 0;
         //use to apply a function to whole vector
         virtual void apply(std::function<double(double)> func) = 0;
+        virtual void apply(std::function<double(double,size_t)> func,size_t i) = 0;
+        virtual void apply(std::function<double(double,size_t,size_t)> func,size_t i) = 0;
         //prints the vector
         virtual void print(int numberOfData = -1) const = 0;
         virtual void swap(size_t i, size_t j) = 0;
@@ -63,9 +64,9 @@ namespace ML{
         //pushing the string
         virtual void push_s(std::string val) = 0;
         //return the elements at giving postion i of type double
-        virtual double at(int i) = 0;
+        virtual double at(int i) const noexcept = 0;
         //return the elements at giving postion i of type string
-        virtual std::string atS(int i) = 0;
+        virtual std::string atS(int i) const noexcept = 0;
 
     };
     template <typename T>
@@ -105,11 +106,11 @@ namespace ML{
             if constexpr(std::is_same_v<T,std::string>) this->push_back(val);
         }
 
-        double at(int i) override{
+        double at(int i) const noexcept override{
             if constexpr(std::is_same_v<T,double>) return this->_data.at(i);
             else return 0;
         }
-        std::string atS(int i)override{
+        std::string atS(int i)const noexcept override{
             if constexpr(std::is_same_v<T,std::string>) return this->_data.at(i);
             else return "";
         }
@@ -129,7 +130,7 @@ namespace ML{
             return (this->_data.at(i));
         }
 
-        double sum() final override{
+        double sum() const noexcept final override{
             double m = 0;
             if(this->_data.empty()) return 0;
             if constexpr(std::is_same_v<T, std::string>) return 0;
@@ -140,7 +141,7 @@ namespace ML{
             }
             return m;
         }
-        double mean() final override{
+        double mean() const noexcept final override{
             double m = 0;
             if(this->_data.empty()) return 0;
             if constexpr(std::is_same_v<T, std::string>) return 0;
@@ -152,7 +153,7 @@ namespace ML{
             }
             return m;
         }
-        double max() final override{
+        double max() const noexcept final override{
             double m;
             if constexpr(std::is_same_v<T, std::string>) return std::numeric_limits<double>::min();
             else {
@@ -163,7 +164,7 @@ namespace ML{
             }
             return m;  
         }
-        double min() final override{
+        double min() const noexcept final override{
             double m;
             if constexpr(std::is_same_v<T, std::string>) std::numeric_limits<double>::max();
             else {
@@ -182,8 +183,22 @@ namespace ML{
                 for(int i = this->_data.size() - 1; i >= 0; i--) this->_data.at(i) = func(this->_data.at(i));
             }
         }
+        void apply(std::function<double(double,size_t)> func,size_t idx) final override{
+            if(this->_data.empty()) return;
+            if constexpr(std::is_same_v<T, std::string>) return; 
+            else{
+                for(int i = this->_data.size() - 1; i >= 0; i--) this->_data.at(i) = func(this->_data.at(i),idx);
+            }
+        }
+        void apply(std::function<double(double,size_t i,size_t j)> func,size_t idx) final override{
+            if(this->_data.empty()) return;
+            if constexpr(std::is_same_v<T, std::string>) return; 
+            else{
+                for(int i = this->_data.size() - 1; i >= 0; i--) this->_data.at(i) = func(this->_data.at(i),idx,i);
+            }
+        }
 
-        double variance() final override{
+        double variance() const noexcept final override{
             double s = 0;
             if(this->_data.empty()) return 0;
             if constexpr(std::is_same_v<T, std::string>) return 0; 
@@ -197,7 +212,7 @@ namespace ML{
             }
             return s;
         }
-        double varianceS() final override{
+        double varianceS() const noexcept final override{
             double s = 0;
             if(this->_data.empty()) return 0;
             if constexpr(std::is_same_v<T, std::string>) return 0; 
@@ -211,12 +226,12 @@ namespace ML{
             return s;
         }
 
-        double std() final override{
+        double std() const noexcept final override{
             if(this->_data.empty()) return 0;
             if constexpr(std::is_same_v<T, std::string>) return 0; 
             else return std::sqrt(this->variance());
         }
-        double stdS() final override{
+        double stdS() const noexcept final override{
             if(this->_data.empty()) return 0;
             if constexpr(std::is_same_v<T, std::string>) return 0; 
             else return std::sqrt(this->varianceS());
@@ -233,7 +248,7 @@ namespace ML{
             return std::move(m);
         }
 
-        double median() final override{
+        double median() noexcept final override{
             double m = 0;
             if(this->_data.empty()) return 0;
             if constexpr(std::is_same_v<T, std::string>) return 0; 

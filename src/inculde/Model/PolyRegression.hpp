@@ -7,7 +7,7 @@ namespace ML{
     struct PolyRegression : Core{
     
     public:
-        matrix<double>  _w;
+        Eigen::MatrixXd  _w;
         using Core::train;
         using Core::predict;
         //lambda function how to init independent variable
@@ -29,81 +29,58 @@ namespace ML{
         bool            _isTrained{false};
         //utility function for training
         void fit();
-        virtual void convertToUblasMatrix(Frame* v,matrix<double> &m,bool isY = true);
-        void transposeMatrix(matrix<double>& m);
-        bool inverseMatrix(matrix<double>& m, matrix<double>& inv);
+        virtual void convertToEigenMatrix(Frame* v,Eigen::MatrixXd &m,bool isY = true);
+        void transposeMatrix(Eigen::MatrixXd& m);
         //calculates weights
         virtual void calWeights();
         //calculates regression coeff
         virtual void calCoeff();
         virtual void squareDueRegression();
-        virtual void squareDueResidual(matrix<double> &m);
+        virtual void squareDueResidual(Eigen::MatrixXd &m);
         //get the orthogonal matrix
-        void getOrthoMatrix(matrix<double>& ortho);
-        
-        //debug function
-        template<typename T>
-        void print(matrix<T> const& m){
-            for(int i = 0; i < m.size1(); i++){
-                for(int j = 0; j < m.size2(); j++){
-                    std::cout<<m(i,j)<<' ';
-                }
-                std::cout<<'\n';
-            }
-        }
+        void getOrthoMatrix(Eigen::MatrixXd& ortho);
     };
 
     void PolyRegression::fit(){
         calCoeff();
     }
 
-    void PolyRegression::convertToUblasMatrix(Frame* v,matrix<double> &m,bool isY){
+    void PolyRegression::convertToEigenMatrix(Frame* v,Eigen::MatrixXd &m,bool isY){
         if(isY){
-            for(size_t i = 0; i < m.size1(); i++){
+            for(size_t i = 0; i < m.rows(); i++){
                 m(i,0) = v->at(i,0);
             }
             this->_headerY = v->_headers[0];
         }else{
-            for(size_t i = 0; i < m.size1(); i++){
-                for(size_t j = 0; j < m.size2(); j++){
+            for(size_t i = 0; i < m.rows(); i++){
+                for(size_t j = 0; j < m.cols(); j++){
                     m(i,j) = std::pow(v->at(i,0),j); 
                 }
             }
         }
     }
 
-    bool PolyRegression::inverseMatrix(matrix<double>& m, matrix<double>& inv){
-        matrix<double> temp(m);
-        permutation_matrix<size_t> pm(temp.size1());
-
-        if(lu_factorize(temp,pm) != 0) return false;
-
-        inv.assign(identity_matrix<double>(temp.size1()));
-        lu_substitute(temp, pm, inv);
-        return true;
-    }
-
     void PolyRegression::calWeights(){
-        matrix<double> temp;
-        this->_w = trans(this->_x);
+        Eigen::MatrixXd temp;
+        this->_w = _x.transpose();
         if(!_ortho){
-            temp = prod(this->_w,this->_x);
+            temp = _w * _x;
         }else{
             getOrthoMatrix(temp);
         }
-        matrix<double> inv(temp.size1(),temp.size2());
-        inverseMatrix(temp,inv);
-        this->_w = prod(inv,this->_w);
+        Eigen::MatrixXd inv(temp.rows(),temp.rows());
+        inv = temp.inverse();
+        this->_w = inv * _w;
     }
 
     void PolyRegression::calCoeff(){
         this->calWeights();
-        this->_coeff = prod(this->_w,this->_y);
+        this->_coeff = _w * _y;
     }
 
     std::vector<double> PolyRegression::getCoeff() const noexcept{
-        std::vector<double> v(this->_coeff.size1());
-        for(int i = 0; i < this->_coeff.size1(); i++) v.at(i) = this->_coeff(i,0);
+        std::vector<double> v(this->_coeff.rows());
+        for(int i = 0; i < this->_coeff.rows(); i++) v.at(i) = this->_coeff(i,0);
         return v;
     }
 
@@ -114,36 +91,36 @@ namespace ML{
     
     double PolyRegression::adjRSquared(){
         double r = this->RSquared();
-        int n = this->_y.size1();
-        int k = this->_x.size2() - 1;
+        int n = this->_y.rows();
+        int k = this->_x.cols() - 1;
         return (1 - ((1 - r * r) * ( n - 1)) / (n - k - 1));
     }
 
     void PolyRegression::squareDueRegression(){
         this->_squareDueRegression = 0;
-        matrix<double> temp = prod(this->_x,this->_coeff);
-        for(int i = 0; i < temp.size1(); i++){
+        Eigen::MatrixXd temp = this->_x * this->_coeff;
+        for(int i = 0; i < temp.rows(); i++){
             this->_squareDueRegression += (temp(i,0) - this->_mean) * (temp(i,0) - this->_mean);
             this->_totalSumOfSquare += (this->_y(i,0) - this->_mean) * (this->_y(i,0) - this->_mean);
         }
         this->squareDueResidual(temp);
     }
-    void PolyRegression::squareDueResidual(matrix<double> &m){
+    void PolyRegression::squareDueResidual(Eigen::MatrixXd &m){
         m = this->_y - m;
-        this->_squareDueResidual = prod(trans(m),m)(0,0);
+        this->_squareDueResidual = (m.transpose() * m)(0,0);
     }
 
-    void PolyRegression::getOrthoMatrix(matrix<double>& ortho){
-        ortho.resize(this->_x.size2(),this->_x.size2());
+    void PolyRegression::getOrthoMatrix(Eigen::MatrixXd& ortho){
+        ortho.resize(this->_x.cols(),this->_x.cols());
         
-        for(int i = 0; i < ortho.size1(); i++){
-            for(int j = 0; j < ortho.size2(); j++){
+        for(int i = 0; i < ortho.rows(); i++){
+            for(int j = 0; j < ortho.cols(); j++){
                 ortho(i,j) = 0;
             }
         }
 
-        for(int i = 0; i < this->_x.size2() ;i++){
-            for(int j = 0; j < this->_x.size1(); j++){
+        for(int i = 0; i < this->_x.cols() ;i++){
+            for(int j = 0; j < this->_x.rows(); j++){
                 ortho(i,i) += std::pow(std::pow(this->_x(j,1),i),2);
             }
         }
@@ -153,15 +130,15 @@ namespace ML{
 
         auto x = Frame::cast(xTestData->at(0));
 
-        matrix<double> xTest(x->size(),1);
-        convertToUblasMatrix(xTestData,xTest);
+        Eigen::MatrixXd xTest(x->size(),1);
+        convertToEigenMatrix(xTestData,xTest);
 
-        this->_predicM.resize(xTest.size1(),1);
+        this->_predicM.resize(xTest.rows(),1);
 
-        for(int i = 0; i < xTest.size1(); i++) this->_predicM(i,0) = 0;
+        for(int i = 0; i < xTest.rows(); i++) this->_predicM(i,0) = 0;
 
-        for(int i = 0; i < xTest.size1(); i++){
-            for(int j = 0; j < this->_coeff.size1(); j++){
+        for(int i = 0; i < xTest.rows(); i++){
+            for(int j = 0; j < this->_coeff.rows(); j++){
                 this->_predicM(i,0) += this->_coeff(j,0) * _func(xTest(i,0),j); 
             }
         }  
@@ -175,8 +152,8 @@ namespace ML{
         this->_x.resize(x->size(), this->_dimension);
         this->_y.resize(y->size(), 1);
 
-        convertToUblasMatrix(xTrainData,this->_x,false);
-        convertToUblasMatrix(yTrainData,this->_y);
+        convertToEigenMatrix(xTrainData,this->_x,false);
+        convertToEigenMatrix(yTrainData,this->_y);
         this->_label = yTrainData->getLabel(0);
         this->_mean = yTrainData->mean(0);
 

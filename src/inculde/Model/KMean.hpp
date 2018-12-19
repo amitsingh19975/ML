@@ -4,13 +4,11 @@
 #include "core.hpp"
 
 namespace ML{
-    using namespace boost::numeric::ublas;
     struct KMean : Core{
-
-        matrix<double>  _clustors;
-        matrix<double>  _result;
-        int             _k;
-        int             _numberOfIterations;
+        Eigen::MatrixXd  _clustors;
+        Eigen::MatrixXd  _result;
+        int              _k;
+        int              _numberOfIterations;
 
         KMean(int k = 1, int numberOfIterations = 10):_k(k),_numberOfIterations(numberOfIterations){}
 
@@ -28,7 +26,7 @@ namespace ML{
         this->_clustors.resize(this->_k,2);
         auto x = Frame::cast(xTrainData->at(0));
         auto y = Frame::cast(xTrainData->at(1));
-        matrix<double> m(this->_k,2);
+        Eigen::MatrixXd m(this->_k,2);
         this->_label = xTrainData->getLabel(1);
         
         for(int i = 0; i < this->_k; i++) {
@@ -59,7 +57,7 @@ namespace ML{
                 assignment.at(j) = bestClus;
             }
 
-            matrix<double> new_mean(this->_k,2);
+            Eigen::MatrixXd new_mean(this->_k,2);
             for(int i = 0; i < this->_k; i++){
                 new_mean(i,0) = 0;
                 new_mean(i,1) = 0;
@@ -98,10 +96,10 @@ namespace ML{
     int KMean::randomIdx() const noexcept{
         // auto seed = std::chrono::high_resolution_clock::now().time_since_epoch().count();
         // std::mt19937 gen(seed);
-        // std::uniform_int_distribution<int> distribution(0,this->_clustors.size2() -1);
+        // std::uniform_int_distribution<int> distribution(0,this->_clustors.cols() -1);
         static std::random_device seed;
         static std::mt19937 random_number_generator(seed());
-        std::uniform_int_distribution<size_t> indices(0, this->_clustors.size1() - 1);
+        std::uniform_int_distribution<size_t> indices(0, this->_clustors.rows() - 1);
         return indices(random_number_generator);
     }
 

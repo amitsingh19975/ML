@@ -7,8 +7,8 @@ namespace ML{
 
     template<typename T>
     void print(boost::numeric::ublas::matrix<T>& m){
-        for(int i = 0; i < m.size1(); i++){
-            for(int j = 0; j < m.size2(); j++)
+        for(int i = 0; i < m.rows(); i++){
+            for(int j = 0; j < m.cols(); j++)
                 std::cout<<std::setw(10)<<m(i,j)<<' ';
             puts("");
         }
@@ -28,18 +28,18 @@ namespace ML{
     //     using namespace std; 
     //     if( 
     //         !( 
-    //             (LeftLarge.size1() >= RightSmall.size1())
-    //         && (LeftLarge.size2() >= RightSmall.size2())
+    //             (LeftLarge.rows() >= RightSmall.rows())
+    //         && (LeftLarge.cols() >= RightSmall.cols())
     //         ) 
     //         )
     //         {
     //         cerr << "invalid matrix dimensions" << endl;
     //         return;
     //         }  
-    //     size_t row_offset = LeftLarge.size2() - RightSmall.size2();
-    //     size_t col_offset = LeftLarge.size1() - RightSmall.size1();
-    //     for(unsigned int row = 0; row < RightSmall.size2(); ++row )
-    //         for(unsigned int col = 0; col < RightSmall.size1(); ++col )
+    //     size_t row_offset = LeftLarge.cols() - RightSmall.cols();
+    //     size_t col_offset = LeftLarge.rows() - RightSmall.rows();
+    //     for(unsigned int row = 0; row < RightSmall.cols(); ++row )
+    //         for(unsigned int col = 0; col < RightSmall.rows(); ++col )
     //             LeftLarge(col_offset+col,row_offset+row) -= RightSmall(col,row);
     // }
     // template<typename T>
@@ -48,14 +48,14 @@ namespace ML{
     //     using namespace std;  
     //     if( 
     //         !( 
-    //             (M.size1() == M.size2())
+    //             (M.rows() == M.cols())
     //         ) 
     //         )
     //         {
     //         cerr << "invalid matrix dimensions" << endl;
     //         return;
     //         }
-    //     size_t size = M.size1();
+    //     size_t size = M.rows();
     //     // init Matrices
     //     matrix<T> H, HTemp;
     //     HTemp = identity_matrix<T>(size);
@@ -85,17 +85,17 @@ namespace ML{
     //     }
     // }
 
-    // void filter(boost::numeric::ublas::matrix<double>& m){
-    //     for(int i = 0; i < m.size1(); i++){
-    //         for(int j = 0; j < m.size2(); j++){
+    // void filter(boost::numeric::ublas::Eigen::MatrixXd& m){
+    //     for(int i = 0; i < m.rows(); i++){
+    //         for(int j = 0; j < m.cols(); j++){
     //             if(std::abs(m(i,j)) < 1e-10) m(i,j) = 0;
     //         }
     //     }           
     // }
 
-    // std::vector<double> eigenValues(boost::numeric::ublas::matrix<double>& m){
+    // std::vector<double> eigenValues(boost::numeric::ublas::Eigen::MatrixXd& m){
     //     using namespace boost::numeric::ublas;
-    //     boost::numeric::ublas::matrix<double> Q,R;
+    //     boost::numeric::ublas::Eigen::MatrixXd Q,R;
     //     std::vector<double> eigenValuesVector;
     //     for(int i = 0; i < 50; i++){
     //         HouseholderQR(m,Q,R);
@@ -106,7 +106,7 @@ namespace ML{
     //     }
     //     filter(m);
 
-    //     for(int i = 0; i < m.size1(); i++)
+    //     for(int i = 0; i < m.rows(); i++)
     //         eigenValuesVector.push_back(m(i,i));
 
     //     return eigenValuesVector;
@@ -137,18 +137,6 @@ namespace ML{
         for(int i = 0; i < M.size(); i++){
             for(int j = 0; j < M.size(); j++){
                 m(i,j) = M[i][j];
-            }
-        }
-        auto [val,vec] = EigenValuesVectors(m);
-        return {val,vec};
-    }
-
-    std::pair<std::vector<double>,std::vector<std::vector<double>>> EigenValuesVectors(boost::numeric::ublas::matrix<double>& M){
-        using namespace Eigen;
-        MatrixXd m(M.size1(),M.size1());
-        for(int i = 0; i < M.size1(); i++){
-            for(int j = 0; j < M.size1(); j++){
-                m(i,j) = M(i,j);
             }
         }
         auto [val,vec] = EigenValuesVectors(m);

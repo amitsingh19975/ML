@@ -5,7 +5,6 @@
 #include "PolyRegression.hpp"
 
 namespace ML{
-    using namespace boost::numeric::ublas;
     struct LinearRegression : PolyRegression{
         size_t          _rows;
         size_t          _cols;
@@ -20,16 +19,14 @@ namespace ML{
         Frame* predict(Frame* xTestData) override{
             if(!this->_isTrained) return nullptr;
 
-            matrix<double> xTest(xTestData->_rows,xTestData->_cols + 1);
-            convertToUblasMatrix(xTestData,xTest,false);
+            Eigen::MatrixXd xTest(xTestData->_rows,xTestData->_cols + 1);
+            convertToEigenMatrix(xTestData,xTest,false);
 
-            this->_predicM.resize(xTest.size1(),1);
-
-            for(int i = 0; i < xTest.size1(); i++) this->_predicM(i,0) = 0;
-
+            this->_predicM.resize(xTest.rows(),1);
+            _predicM.setZero();
             
-            for(int i = 0; i < xTest.size1(); i++){
-                for(int j = 0; j < this->_coeff.size1(); j++){
+            for(int i = 0; i < xTest.rows(); i++){
+                for(int j = 0; j < this->_coeff.rows(); j++){
                     this->_predicM(i,0) += this->_coeff(j,0) * xTest(i,j); 
                 }
             }
@@ -44,14 +41,14 @@ namespace ML{
             this->_x.resize(this->_rows, this->_cols + 1);
             this->_y.resize(this->_rows, 1);
 
-            convertToUblasMatrix(xTrainData,this->_x,false);
-            convertToUblasMatrix(yTrainData,this->_y);
+            convertToEigenMatrix(xTrainData,this->_x,false);
+            convertToEigenMatrix(yTrainData,this->_y);
 
             this->_mean = yTrainData->mean(0);
             this->_label = yTrainData->getLabel(0);
-            this->_coeff.resize(this->_x.size2(),1);
+            this->_coeff.resize(this->_x.cols(),1);
 
-            for(int i = 0; i < this->_coeff.size1();i++){
+            for(int i = 0; i < this->_coeff.rows();i++){
                 this->_coeff(i,0) = 0;
             }
             this->fit();
@@ -59,15 +56,15 @@ namespace ML{
         }
 
     protected:
-        void convertToUblasMatrix(Frame* v,matrix<double> &m,bool isY = true) override{
+        void convertToEigenMatrix(Frame* v,Eigen::MatrixXd &m,bool isY = true) override{
             if(isY){
                 for(size_t i = 0; i < v->_rows; i++){
                     m(i,0) = v->at(i,0);
                 }
                 this->_headerY = v->_headers[0];
             }else{
-                for(size_t i = 0; i < m.size2(); i++){
-                    for(size_t j = 0; j < m.size1(); j++){
+                for(size_t i = 0; i < m.cols(); i++){
+                    for(size_t j = 0; j < m.rows(); j++){
                         if(i == 0) {
                             m(j,i) = 1; 
                         }else{

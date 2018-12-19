@@ -3,6 +3,7 @@
 
 #include "../gch/headers.hpp"
 #include "../Frame/frame.hpp"
+#include "../PrettyPrint/prettyPrint.hpp"
 
 namespace ML{
 
@@ -11,19 +12,23 @@ namespace ML{
         return round(value * places) / places;
     }
 
+    Eigen::MatrixXd removeColumn(Eigen::MatrixXd& matrix, unsigned int upper){
+        unsigned int numRows = matrix.rows();
+        unsigned int numCols = upper;
+        Eigen::MatrixXd m(numRows,numCols);
+        for(int i = 0; i < m.rows(); i++)
+            for(int j = 0; j < m.cols();j++)
+                m(i,j) = matrix(i,j);
+        return m;
+    }
+
     struct PCA{
         Eigen::EigenSolver<Eigen::MatrixXd> _eigenSolver;
         size_t _n_components{2};
         Eigen::MatrixXd _f;
         PCA(FrameShared& f,size_t n_components = 2):_n_components(n_components),_f(f->rowSize(),f->colSize()){
-            Eigen::MatrixXd sampleVar(f->colSize(),f->colSize());
             f->Zscore();
-            f->print(5);
-            for(auto i = 0; i < sampleVar.rows(); i++){
-                for(auto j = 0; j < sampleVar.cols(); j++){
-                    sampleVar(i,j) = cov(f->at(i),f->at(j));
-                }
-            }
+            Eigen::MatrixXd sampleVar = f->cov();
             for(auto i = 0; i < _f.rows(); i++){
                 for(auto j = 0; j < _f.cols(); j++){
                     _f(i,j) = f->at(i,j);
@@ -51,22 +56,10 @@ namespace ML{
         void swapM(int i, int j);
     };
 
-    double PCA::cov(Series* x, Series* y){
-        auto sz = x->size();
-        auto s = 0.0;
-        auto mX = x->mean();
-        auto mY = y->mean();
-        for(auto i = 0; i < sz; i++){
-            s += (x->at(i) - mX) * (y->at(i) - mY);
-        }
-        return (s / (sz - 1));
-    }
-
     FrameShared PCA::getReducedFrame() noexcept {
         FrameUnique f(new Frame(_f.rows(),_n_components));
-        Eigen::MatrixXd t = _vec.transpose();
-        // std::cout<<_vec<<'\n';
-        t = _f * t;
+        auto vec = removeColumn(_vec,_n_components);
+        Eigen::MatrixXd t = _f * vec;
         for(auto i = 0; i < f->colSize();i++){
             std::string header = std::to_string(i + 1) +" P";
             SeriesUnique temp(new Vec<double>(header,"double"));
@@ -83,6 +76,7 @@ namespace ML{
         auto vec = _eigenSolver.eigenvectors();
         _vec.resize(vec.rows(),vec.cols());
         _val.resize(val.size());
+        
         for(auto i = 0; i < val.size(); i++){
             _val(i) = val(i).real();
         }

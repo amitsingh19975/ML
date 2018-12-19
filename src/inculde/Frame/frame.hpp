@@ -6,11 +6,16 @@
 
 namespace ML{
     struct Frame;
-    using Tuple = std::tuple<Frame*, Frame*, Frame*, Frame*>;
-    using Pair = std::pair<Frame*, Frame*>;
-    using FrameShared = std::shared_ptr<Frame>;
-    using FrameUnique = std::unique_ptr<Frame>;
-    using SeriesUnique = std::unique_ptr<Series>;
+    using Tuple         = std::tuple<Frame*, Frame*, Frame*, Frame*>;
+    using Pair          = std::pair<Frame*, Frame*>;
+    using FrameShared   = std::shared_ptr<Frame>;
+    using FrameUnique   = std::unique_ptr<Frame>;
+    using SeriesUnique  = std::unique_ptr<Series>;
+    using MatrixXs      = Eigen::Matrix<std::string,Eigen::Dynamic,Eigen::Dynamic>;
+    using MatrixXd      = Eigen::MatrixXd;
+    using MatrixXsize   = Eigen::Matrix<size_t,Eigen::Dynamic,Eigen::Dynamic>;
+    using MatrixXint    = Eigen::Matrix<int,Eigen::Dynamic,Eigen::Dynamic>;
+    using MatrixXint_64 = Eigen::Matrix<int64_t,Eigen::Dynamic,Eigen::Dynamic>;
     //DataFrame similar to pandas dataframe 
     struct Frame{
         //stores the series
@@ -38,9 +43,9 @@ namespace ML{
         template<typename T>
         Frame(std::vector<T>& data, std::string header = "");
         template<typename T>
-        Frame(matrix<T>& data, std::vector<std::string> headers);
+        Frame(Eigen::MatrixBase<T>& data, std::vector<std::string> headers);
         template<typename T>
-        Frame(matrix<T>& data,std::unordered_map<std::string,int>& label, std::vector<std::string> headers):Frame(data,headers){
+        Frame(Eigen::MatrixBase<T>& data,std::unordered_map<std::string,int>& label, std::vector<std::string> headers):Frame(data,headers){
             this->setLabel(label,0);
             this->_headers = headers;
             this->updateSize();
@@ -63,6 +68,8 @@ namespace ML{
         void numberToLabel(int idx);
         //apply a function to frame
         void apply(std::function<double(double)> func);
+        void apply(std::function<double(double,size_t i)> func);
+        void apply(std::function<double(double,size_t i, size_t j)> func);
         //get series at a given postion
         Series* at(int i);
         //add Vec of given type
@@ -105,17 +112,23 @@ namespace ML{
         //randomizing rows
         static void randomize(Frame* frame, int seed = 42, int iteration = 50); 
 
-        double mean(int col){return this->at(col)->mean();}
-        double std(int col){return this->at(col)->std();}
-        double variance(int col){return this->at(col)->variance();}
-        double median(int col){return this->at(col)->median();}
+        double mean(int col) noexcept {return this->at(col)->mean();}
+        double sum(int col) noexcept {return this->at(col)->sum();}
+        double std(int col) noexcept {return this->at(col)->std();}
+        double variance(int col) noexcept {return this->at(col)->variance();}
+        double median(int col) noexcept{return this->at(col)->median();}
+        Eigen::VectorXd mean() noexcept;
+        Eigen::VectorXd std() noexcept;
+        Eigen::VectorXd variance() noexcept;
+        Eigen::VectorXd median() noexcept;
         //normalize data between -1 and 1
         void normalize(double val = 0);
         void Zscore();
         //returns correlation coefficient
         double corrcoef(int i, int j) noexcept;
         //returns correlation coefficient matrix of every possible pair
-        void corrcoefMatrix() noexcept;
+        Eigen::MatrixXd corrcoefMatrix() noexcept;
+        Eigen::MatrixXd cov() noexcept;
         //return the unique elements in a given column
         template<typename T = double>
         std::unique_ptr<std::unordered_map<T, int>> unique(int col);
@@ -175,6 +188,35 @@ namespace ML{
             exit(1);
         }
         return this->_data.at(i).get();
+    }
+
+    Eigen::VectorXd Frame::mean() noexcept{
+        Eigen::VectorXd m(colSize());
+        for(int i = 0; i < colSize();i++){
+            m(i) = mean(i);
+        }
+        return m;
+    }
+    Eigen::VectorXd Frame::std() noexcept{
+        Eigen::VectorXd m(colSize());
+        for(int i = 0; i < colSize();i++){
+            m(i) = std(i);
+        }
+        return m;
+    }
+    Eigen::VectorXd Frame::median() noexcept{
+        Eigen::VectorXd m(colSize());
+        for(int i = 0; i < colSize();i++){
+            m(i) = median(i);
+        }
+        return m;
+    }
+    Eigen::VectorXd Frame::variance() noexcept{
+        Eigen::VectorXd m(colSize());
+        for(int i = 0; i < colSize();i++){
+            m(i) = variance(i);
+        }
+        return m;
     }
 
     template<>
@@ -312,23 +354,28 @@ namespace ML{
     }
 
     template<typename T>
-    Frame::Frame(matrix<T>& data, std::vector<std::string> headers){
-        for(size_t i = 0; i < data.size2(); i++){
-            std::vector<T> temp;
-            for(size_t j = 0; j < data.size1(); j++){
-                temp.push_back(data(j,i));
-            }
-            if constexpr(std::is_same_v<T,std::string>){
-                SeriesUnique s(new Vec<T>(headers[i],"string",temp));
+    Frame::Frame(Eigen::MatrixBase<T>& data, std::vector<std::string> headers){
+        for(size_t i = 0; i < data.cols(); i++){
+            if constexpr(std::is_same_v<T,MatrixXs>){
+                std::vector<std::string> temp;
+                for(size_t j = 0; j < data.rows(); j++){
+                    temp.push_back(data(j,i));
+                }
+                SeriesUnique s(new Vec<std::string>(headers[i],"string",temp));
                 this->_data.push_back(std::move(s));
             }else{
-                SeriesUnique s(new Vec<T>(headers[i],"double",temp));
+                std::vector<double> temp;
+                for(size_t j = 0; j < data.rows(); j++){
+                    temp.push_back(data(j,i));
+                }
+                SeriesUnique s(new Vec<double>(headers[i],"double",temp));
                 this->_data.push_back(std::move(s));
             }
         }
         this->_headers = headers;
         this->updateSize();
     }
+
     template<typename T>
     Frame::Frame(std::vector<T>& data, std::string header){
         if constexpr(std::is_same_v<T,std::string>){
@@ -413,9 +460,9 @@ namespace ML{
         }
         for(auto const& v: this->_data){
             double mean = v->mean();
-            double std = v->std();
+            double std = v->stdS();
             v->apply([&](double el){
-                return (el - mean) / (mean - std);
+                return (el - mean) / (std);
             });
         }
     }
@@ -602,14 +649,49 @@ namespace ML{
                 this->_data.at(i)->apply(func);
         }
     }
-
-    void Frame::corrcoefMatrix() noexcept{
-        for(auto i = 0; i < this->_cols; i++){
-            for(auto j = 0; j < this->_cols; j++){
-                std::cout<<std::setw(10)<<this->corrcoef(i,j);
-            }
-            std::cout<<'\n';
+    void Frame::apply(std::function<double(double,size_t)> func){
+        if(isEmpty()) {
+            std::cerr<< "Line: " + std::to_string(__LINE__)<<'\n';
+            return;
         }
+        for(int i = 0; i < this->_cols; i++){
+            if(this->_data.at(i)->_type != "string")
+                this->_data.at(i)->apply(func,i);
+        }
+    }
+    void Frame::apply(std::function<double(double,size_t,size_t)> func){
+        if(isEmpty()) {
+            std::cerr<< "Line: " + std::to_string(__LINE__)<<'\n';
+            return;
+        }
+        for(int i = 0; i < this->_cols; i++){
+            if(this->_data.at(i)->_type != "string")
+                this->_data.at(i)->apply(func,i);
+        }
+    }
+
+    Eigen::MatrixXd Frame::corrcoefMatrix() noexcept{
+        Eigen::MatrixXd m(colSize(),colSize());
+        for(auto i = 0; i < colSize(); i++){
+            for(auto j = 0; j < colSize(); j++){
+                m(i,j)= this->corrcoef(i,j);
+            }
+        }
+        return m;
+    }
+    Eigen::MatrixXd Frame::cov() noexcept{
+        Eigen::MatrixXd m(colSize(),colSize());
+        m.setZero();
+        Eigen::VectorXd Mean = mean();
+        for(auto i = 0; i < colSize(); i++){
+            for(auto j = 0; j < colSize(); j++){
+                for(auto k = 0; k < rowSize();k++){
+                    m(i,j) += ((at(k,i) - Mean(i)) * (at(k,j) - Mean(j)));   
+                }
+                m(i,j) /= (rowSize() - 1);
+            }
+        }
+        return m;
     }
     double Frame::corrcoef(int i, int j) noexcept{
         if(this->_cols <= i || this->_cols <= j ){

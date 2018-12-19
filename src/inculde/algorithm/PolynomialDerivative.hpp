@@ -7,20 +7,20 @@ namespace ML{
     struct Polynomial{
         std::vector<double> _coeff;
         size_t _degree{0};
-        Polynomial(matrix<double>& m){
-            if(m.size1() > m.size2() && m.size2() == 1){
-                _degree = m.size1();
+        Polynomial(Eigen::MatrixXd& m){
+            if(m.rows() > m.cols() && m.cols() == 1){
+                _degree = m.rows();
                 _coeff.resize(_degree);
                 for(auto i = 0; i <_degree; i++){
                     _coeff[i] = m(i,0);
                 }
-            }else if(m.size1() < m.size2() && m.size1() == 1){
-                _degree = m.size1();
+            }else if(m.rows() < m.cols() && m.rows() == 1){
+                _degree = m.rows();
                 _coeff.resize(_degree);
                 for(auto i = 0; i <_degree; i++){
                     _coeff[i] = m(0,i);
                 }
-            }else if(m.size1() == m.size2() && m.size1() == 1){
+            }else if(m.rows() == m.cols() && m.rows() == 1){
                 _degree = 1;
                 _coeff.resize(_degree);
                 _coeff[0] = m(0,0);

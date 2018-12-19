@@ -55,12 +55,12 @@ namespace ML{
 
     struct PrettyPrintData{
         template <typename T>
-        using Vmatrix           = std::vector<std::vector<T>>;
+        using Vmatrix               = std::vector<std::vector<T>>;
         template <typename T>
-        using VecArray          = std::vector<T>;
-        Vmatrix<std::string>     _body;
-        VecArray<std::string>   _headers;
-        VecArray<size_t>        _width;
+        using VecArray              = std::vector<T>;
+        Vmatrix<std::string>        _body;
+        VecArray<std::string>       _headers;
+        VecArray<size_t>            _width;
         PrettyPrintData(){}
         PrettyPrintData(Frame* frame);
         PrettyPrintData(Series* series);
@@ -68,6 +68,8 @@ namespace ML{
         PrettyPrintData(Vmatrix<T>& m);
         template<typename T>
         PrettyPrintData(VecArray<T>& m);
+        template<typename T>
+        PrettyPrintData(Eigen::MatrixBase<T>& m);
     };
 
     struct Color{
@@ -153,6 +155,9 @@ namespace ML{
         template<typename T>
         static  auto    print(VecArray<T>& , uint32_t indent = 5
                             , uint32_t const maxLine = 2, uint32_t maxWidth = 20) -> void;
+        template<typename T>
+        static  auto    print(Eigen::MatrixBase<T>& , uint32_t indent = 5
+                            , uint32_t const maxLine = 2, uint32_t maxWidth = 20) -> void;
     protected:
         static  auto    printColumn(PrettyPrintData& p, size_t idx, size_t colPos, size_t rowPos,size_t min, size_t max,
                                  uint32_t indent, uint32_t const maxLine = 2, uint32_t maxWidth = 20) -> int;
@@ -236,6 +241,26 @@ namespace ML{
         _body.push_back(temp);
     }
 
+    template<typename T>
+    PrettyPrintData::PrettyPrintData(Eigen::MatrixBase<T>& m):_width(m.cols()),_headers(m.cols()){
+       for(int i = 0; i < m.cols(); i++) _headers[i] = "";
+        _width.resize(_headers.size());
+        for(int i = 0; i < m.cols(); i++) _width[i] = _headers[i].size();
+
+        for(int i = 0; i < m.cols(); i++){
+            VecArray<std::string> temp;
+            for(int j = 0; j < m.rows(); j++){
+                if constexpr(std::is_same_v<T,std::string>){
+                    temp.push_back(m(j,i));
+                }else{
+                    temp.push_back(std::to_string(m(j,i)));
+                }
+                _width[i] = std::max(temp.back().size(),_width[i]);
+            }
+            _body.push_back(temp);
+        } 
+    }
+
     auto PPrint::printHelper(PrettyPrintData& p, uint32_t indent, uint32_t const maxLine, uint32_t maxWidth) -> void{
         Terminal::init();
         auto [row, col] = Terminal::getWindowSize();
@@ -270,7 +295,7 @@ namespace ML{
                     }
                     break;
                 case ARROW_RIGHT:
-                    if(j + totalWidth < p._body.size() - 1){
+                    if(j + totalWidth < p._body.size()){
                         j++;
                         Terminal::clearScreen();
                     }
@@ -292,6 +317,11 @@ namespace ML{
             }
         }
         Terminal::disable();
+    }
+    template<typename T>
+    auto PPrint::print(Eigen::MatrixBase<T>& m, uint32_t indent, uint32_t const maxLine, uint32_t maxWidth) -> void{
+        PrettyPrintData p(m);
+        PPrint::printHelper(p, indent,maxLine,maxWidth);
     }
     
     auto PPrint::print(Frame* frame, uint32_t indent, uint32_t const maxLine, uint32_t maxWidth) -> void{
@@ -371,6 +401,15 @@ namespace ML{
                 size_t ls = maxWidth > temp.size() ? maxWidth - temp.size() : 0;
                 ls /=2;
                 temp = std::string(ls,' ') + temp + std::string(ls,' ');
+                if(temp.size() >= maxWidth ){
+                    if(i == maxLine - 1){
+                        temp[temp.size() - 3] = '.';
+                        temp[temp.size() - 2] = '.';
+                        temp[temp.size() - 1] = '.';
+                    }else{
+                        temp = temp.substr(0,maxWidth);
+                    }
+                }
                 Terminal::setCursor(x,y);
                 std::string c = getColor(PPrint::ColorHeaderFG, PPrint::ColorHeaderBG) + ";1m";
                 temp = c + temp + "\x1b[0m"; 
@@ -407,6 +446,14 @@ namespace ML{
                     }
                     size_t ls = maxWidth > temp.size() ? maxWidth - temp.size() : 0;
                     ls /=2;
+                    if(temp.size() >= maxWidth ){
+                        temp = temp.substr(0,maxWidth);
+                        if(i == maxLine - 1){
+                            temp[temp.size() - 3] = '.';
+                            temp[temp.size() - 2] = '.';
+                            temp[temp.size() - 1] = '.';
+                        }
+                    }
                     std::string c = getColor(PPrint::ColorBody, Color()) + "m";
                     temp = std::string(ls,' ') + temp + std::string(ls,' ');
                     Terminal::setCursor(x,y);
