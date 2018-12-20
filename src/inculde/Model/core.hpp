@@ -12,7 +12,6 @@ namespace ML{
         double          _squareDueRegression{0};
         double          _totalSumOfSquare{0};
         double          _mean{0};
-        // Eigen::MatrixXd  _predicM;
         Eigen::MatrixXd _predicM;
         FrameUnique     _predic;
         virtual void train(Frame* xTrainData, Frame* yTrainData){}
