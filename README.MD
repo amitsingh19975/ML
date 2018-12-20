@@ -165,6 +165,27 @@ static Vec<U>* cast(Series* data)``
 
 ## Pretty Printer
 
+``static Color ColorHeaderFG``
+
+``static Color ColorHeaderBG``
+
+``static Color ColorBody``
+
+``static  auto  print(Frame* frame,  uint32_t indent =  5,  uint32_t  const maxLine =  2,  uint32_t maxWidth =  20)  ->  void``
+
+``static  auto  print(Frame& frame,  uint32_t indent =  5,  uint32_t  const maxLine =  2,  uint32_t maxWidth =  20)  ->  void``
+
+``static  auto  print(FrameShared& frame,  uint32_t indent =  5,  uint32_t  const maxLine =  2,  uint32_t maxWidth =  20)  ->  void``
+
+``static  auto  print(Series* series,  uint32_t indent =  5,  uint32_t  const maxLine =  2,  uint32_t maxWidth =  20)  ->  void``
+
+``template<typename T> static  auto  print(Vmatrix<T>&  ,  uint32_t indent =  5,  uint32_t  const maxLine =  2,  uint32_t maxWidth =  20)  ->  void``
+
+``template<typename T> static  auto  print(VecArray<T>&  ,  uint32_t indent =  5,  uint32_t  const maxLine =  2,  uint32_t maxWidth =  20)  ->  void``
+
+``template<typename T> static  auto  print(Eigen::MatrixBase<T>&  ,  uint32_t indent =  5,  uint32_t  const maxLine =  2,  uint32_t maxWidth =  20)  ->  void``
+
+
 ## PCA
 
 ## CSVParser
