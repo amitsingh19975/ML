@@ -28,6 +28,7 @@ namespace ML{
         //store the type of vector
         std::string _type;
         std::string _header{""};
+        size_t _totalNan{0};
         //store label after converting string to number
         std::unordered_map<std::string,int> _labelMap;
 
@@ -51,13 +52,15 @@ namespace ML{
         virtual double min() const noexcept = 0;
         virtual double sum() const noexcept = 0;
         //returns the number of unique elements in a vector
-        virtual std::unique_ptr<std::unordered_map<std::string, int>> unique() = 0;
+        virtual std::unordered_map<std::string, int> unique() = 0;
         //use to apply a function to whole vector
         virtual void apply(std::function<double(double)> func) = 0;
         virtual void apply(std::function<double(double,size_t)> func,size_t i) = 0;
         virtual void apply(std::function<double(double,size_t,size_t)> func,size_t i) = 0;
         //prints the vector
         virtual void print(int numberOfData = -1) const = 0;
+        virtual bool isnan() const noexcept = 0;
+        virtual void fillnan(double val) noexcept = 0;
         virtual void swap(size_t i, size_t j) = 0;
         //use to push double in vector
         virtual void push_d(double val) = 0;
@@ -77,6 +80,11 @@ namespace ML{
             this->_header = header;
             this->_type = type;
             this->_size = _data.size();
+            if constexpr(std::is_same_v<T,double>){
+                for(auto const& n : _data){
+                    if(std::isnan(n)) _totalNan++;
+                }
+            }
         }
         Vec(std::string header, std::string type){
             this->_header = header;
@@ -92,6 +100,11 @@ namespace ML{
             this->_header = header;
             this->_type = type;
             this->_size = _data.size();
+            if constexpr(std::is_same_v<T,double>){
+                for(auto const& n : _data){
+                    if(std::isnan(n)) _totalNan++;
+                }
+            }
         }
         //Generic push_back api
         void push_back(T data){
@@ -100,10 +113,13 @@ namespace ML{
         }
 
         void push_d(double val) override{
-            if constexpr(std::is_same_v<T,double>) this->push_back(val);
+            if constexpr(std::is_same_v<double,T>) {
+                if(std::isnan(val)) _totalNan++;
+                this->push_back(val);
+            }
         }
         void push_s(std::string val) override{
-            if constexpr(std::is_same_v<T,std::string>) this->push_back(val);
+            if constexpr(std::is_same_v<std::string,T>) this->push_back(val);
         }
 
         double at(int i) const noexcept override{
@@ -112,7 +128,7 @@ namespace ML{
         }
         std::string atS(int i)const noexcept override{
             if constexpr(std::is_same_v<T,std::string>) return this->_data.at(i);
-            else return "";
+            else return std::to_string(_data[i]);
         }
         
         void print(int numberOfData = -1) const override{
@@ -126,6 +142,23 @@ namespace ML{
             }
         }
 
+        void ltrim(std::string& str) const noexcept{
+            str.erase(str.begin(),std::find_if(str.begin(),str.end(),[](char c){
+                return !std::isspace(c);
+            }));
+        }
+
+        void rtrim(std::string &s) const noexcept{
+            s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
+                return !std::isspace(ch);
+            }).base(), s.end());
+        }
+
+        void trim(std::string &s) const noexcept{
+            ltrim(s);
+            rtrim(s);
+        }
+        
         T& operator[](int i){
             return (this->_data.at(i));
         }
@@ -136,7 +169,7 @@ namespace ML{
             if constexpr(std::is_same_v<T, std::string>) return 0;
             else{
                 for(auto num : this->_data){
-                    m += num;
+                    if(!std::isnan(num)) m += num;
                 }
             }
             return m;
@@ -146,10 +179,12 @@ namespace ML{
             if(this->_data.empty()) return 0;
             if constexpr(std::is_same_v<T, std::string>) return 0;
             else{
+                int f = 0;
                 for(auto num : this->_data){
-                    m += num;
+                    if(std::isnan(num)) f++;
+                    else m += num;
                 }
-                m /= this->size();
+                m /= (this->size() - f);
             }
             return m;
         }
@@ -159,18 +194,38 @@ namespace ML{
             else {
                 m = std::numeric_limits<double>::min();
                 for(int i = 0; i < this->_data.size();i++){
-                    if(m < this->_data.at(i)) m = this->_data.at(i);
+                    if(m < this->_data.at(i) && !std::isnan(this->_data.at(i))) m = this->_data.at(i);
                 }
             }
             return m;  
         }
+        void fillnan(double val) noexcept final override{
+            if constexpr(std::is_same_v<T, double>){
+                for(int i = 0; i < this->_data.size();i++){
+                    if(std::isnan(this->_data.at(i))) {
+                        _data[i] = val; 
+                        _totalNan--;
+                    }
+                }
+            }
+        }
+        bool isnan() const noexcept final override{
+            if constexpr(std::is_same_v<T, std::string>) return false;
+            else {
+                double m = std::numeric_limits<double>::max();
+                for(int i = 0; i < this->_data.size();i++){
+                    if(std::isnan(this->_data.at(i))) return true;
+                }
+                return false;
+            }
+        }
         double min() const noexcept final override{
             double m;
-            if constexpr(std::is_same_v<T, std::string>) std::numeric_limits<double>::max();
+            if constexpr(std::is_same_v<T, std::string>) return std::numeric_limits<double>::max();
             else {
                 m = std::numeric_limits<double>::max();
                 for(int i = 0; i < this->_data.size();i++){
-                    if(m > this->_data.at(i)) m = this->_data.at(i);
+                    if(m > this->_data.at(i) && !std::isnan(this->_data.at(i))) m = this->_data.at(i);
                 }
             }
             return m;
@@ -204,10 +259,12 @@ namespace ML{
             if constexpr(std::is_same_v<T, std::string>) return 0; 
             else{
                 double m = this->mean();
+                int f = 0;
                 for(int i = this->_data.size() - 1; i >= 0; i--){
-                    s += (this->_data.at(i) * this->_data.at(i));
+                    if(!std::isnan(_data.at(i))) s += (this->_data.at(i) * this->_data.at(i));
+                    else f++;
                 }
-                s /= this->size();
+                s /= this->size() - f;
                 s -= m * m; 
             }
             return s;
@@ -219,9 +276,9 @@ namespace ML{
             else{
                 double m = this->mean();
                 for(int i = this->_data.size() - 1; i >= 0; i--){
-                    s += (this->_data.at(i) - m) * (this->_data.at(i) - m);
+                    if(!std::isnan(_data.at(i))) s += (this->_data.at(i) - m) * (this->_data.at(i) - m);
                 }
-                s /= (this->size() - 1);
+                s /= (this->size() - 1 - _totalNan);
             }
             return s;
         }
@@ -237,23 +294,30 @@ namespace ML{
             else return std::sqrt(this->varianceS());
         }
         
-        std::unique_ptr<std::unordered_map<std::string, int>> unique() final override{
-            std::unique_ptr<std::unordered_map<std::string, int>> m{new std::unordered_map<std::string, int>()};
+       std::unordered_map<std::string, int> unique() final override{
+            std::unordered_map<std::string, int> m;
             std::string temp;
             for(auto el : this->_data){
                 temp = to_string(el);
-                if(auto it = m->find(temp); it != m->end()) it->second++;
-                else (*m)[to_string(temp)] = 1;
+                trim(temp);
+                if(auto it = m.find(temp); it != m.end()) it->second++;
+                else m[to_string(temp)] = 1;
             }
-            return std::move(m);
+            return m;
         }
 
         double median() noexcept final override{
-            double m = 0;
-            if(this->_data.empty()) return 0;
             if constexpr(std::is_same_v<T, std::string>) return 0; 
-            else m = medianAlgo<double>(this->_data,1,this->_data.size() - 1,(this->_data.size())/2);
-            return m;
+            else{
+                double m = 0;
+                std::vector<double> v;
+                for(int i = 0; i < _data.size();i++){
+                    if(!std::isnan(at(i))) v.push_back(at(i));
+                }
+                std::sort(v.begin(),v.end());
+                m = v[(v.size()/2)];
+                return m;
+            }
         }
 
         void swap(size_t i, size_t j) final override{

@@ -66,6 +66,9 @@ namespace ML{
         void labelToNumber(int idx);
         //converts number to label
         void numberToLabel(int idx);
+        void fillnan(std::function<Eigen::VectorXd()> func) noexcept;
+        void fillnan(Eigen::VectorXd& vec) noexcept;
+        void fillnan() noexcept;
         //apply a function to frame
         void apply(std::function<double(double)> func);
         void apply(std::function<double(double,size_t i)> func);
@@ -130,8 +133,7 @@ namespace ML{
         Eigen::MatrixXd corrcoefMatrix() noexcept;
         Eigen::MatrixXd cov() noexcept;
         //return the unique elements in a given column
-        template<typename T = double>
-        std::unique_ptr<std::unordered_map<T, int>> unique(int col);
+        std::unordered_map<std::string, int> unique(int col){return this->at(col)->unique();}
         //use to cast series into Vec struct
         template<typename U = double>
         static Vec<U>* cast(Series* data){
@@ -719,7 +721,40 @@ namespace ML{
         for(auto i = 0; i < this->_headers.size(); i++){
             std::cout   <<std::setw(std::to_string(_headers.size()).size())
                         <<i<<':'<<_headers[i]<<std::setw(maxS + 10 - _headers[i].size())
-                        <<": "<<this->_data[i]->_type<<'\n';
+                        <<"  "<<(this->_data[i]->_totalNan == 0 ? "non-null" : std::to_string(this->_data[i]->_totalNan) + std::string(8 - std::to_string(this->_data[i]->_totalNan).size(),' '))
+                        <<std::setw(6)<<"  "<<this->_data[i]->_type<<'\n';
+        }
+    }
+    void Frame::fillnan(std::function<Eigen::VectorXd()> func) noexcept{
+        if(isEmpty()) {
+            std::cerr<< "Line: " + std::to_string(__LINE__)<<'\n';
+            return;
+        }
+        Eigen::VectorXd v = func();
+        for(int i = 0; i < this->_cols; i++){
+            if(this->_data.at(i)->_type != "double")
+                this->_data.at(i)->fillnan(v(i));
+        }
+    }
+    void Frame::fillnan(Eigen::VectorXd& vec) noexcept{
+        if(isEmpty()) {
+            std::cerr<< "Line: " + std::to_string(__LINE__)<<'\n';
+            return;
+        }
+        for(int i = 0; i < this->_cols; i++){
+            if(this->_data.at(i)->_type != "double")
+                this->_data.at(i)->fillnan(vec(i));
+        }
+    }
+    void Frame::fillnan() noexcept{
+        if(isEmpty()) {
+            std::cerr<< "Line: " + std::to_string(__LINE__)<<'\n';
+            return;
+        }
+        Eigen::VectorXd v = mean();
+        for(int i = 0; i < this->_cols; i++){
+            if(this->_data.at(i)->_type == "double")
+                this->_data.at(i)->fillnan(v(i));
         }
     }
 }

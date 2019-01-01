@@ -174,21 +174,28 @@ namespace ML{
     PrettyPrintData::PrettyPrintData(Series* series):_width(1){
         _headers.push_back(series->_header);
         _width[0] = (_headers.back().size());
-
+        std::string str;
         VecArray<std::string> temp(series->size());
         for(auto j = 0; j < series->size(); j++){
             if(series->_type == "string"){
                 _width[0] = std::max(_width[0],series->atS(j).size());
                 temp[j] = series->atS(j);
             }else{
-                _width[0] = std::max(_width[0],std::to_string(series->at(j)).size());
-                temp[j] = std::to_string(series->at(j));
+                double a = series->at(j);
+                if(a == static_cast<int>(a) && !std::isnan(a)){
+                    str = std::to_string(static_cast<int>(a));
+                }else{
+                    str = std::to_string(a);
+                }
+                _width[0] = std::max(_width[0],str.size());
+                temp[j] = str;
             }
         }
         _body.push_back(temp);
     }
     PrettyPrintData::PrettyPrintData(Frame* frame):_width(frame->colSize()){
         _headers = frame->_headers;
+        std::string str;
         for(auto i = 0; i < _headers.size(); i++) _width[i] = _headers[i].size();
 
         for(auto i = 0; i < frame->colSize(); i++){
@@ -198,8 +205,14 @@ namespace ML{
                     _width[i] = std::max(_width[i],frame->at(i)->atS(j).size());
                     temp[j] = frame->at(i)->atS(j);
                 }else{
-                    _width[i] = std::max(_width[i],std::to_string(frame->at(i)->at(j)).size());
-                    temp[j] = std::to_string(frame->at(i)->at(j));
+                    double a = frame->at(i)->at(j);
+                    if(a == static_cast<int>(a) && !std::isnan(a)){
+                        str = std::to_string(static_cast<int>(a));
+                    }else{
+                        str = std::to_string(a);
+                    }
+                    _width[i] = std::max(_width[i],str.size());
+                    temp[j] = str;
                 }
             }
             _body.push_back(temp);
@@ -268,26 +281,25 @@ namespace ML{
         size_t max = (row - maxLine - 1)/(maxLine + 1);
         size_t totalHeight = max;
         int totalWidth = ((col - 10.0) / szOfCol) ;
-        size_t j = 0,d = 0;
+        size_t j = 0,min = 0;
         Terminal::clearScreen();
-        std::string mess = "Press CTRL + q or CTRL + e to quit!";
+        std::string mess = "Press q to quit!";
         while(1){
             int k = 0;
             int y = 0;
             for(int i = j; i < std::min(j + totalWidth,p._body.size()); i++){
-                y = printColumn(p,i,k++,0,d,max,indent,maxLine,maxWidth);
+                y = printColumn(p,i,k++,0,min,max,indent,maxLine,maxWidth);
             }
             Terminal::setCursor(0,y);
             write(STDOUT_FILENO, mess.c_str(),mess.size());
             Terminal::setCursor(0,y + 1);
             int c = Terminal::keyEvent();
             switch(c){
-                case CTRL_KEY('e'):
-                case CTRL_KEY('q'):
+                case 'q':
                     write(STDOUT_FILENO, "\x1b[2J", 4);
                     write(STDOUT_FILENO, "\x1b[H", 3);
-                    exit(0);
-                    break;
+                    Terminal::disable();
+                    return;
                 case ARROW_LEFT:
                     if(j > 0){
                         j--;
@@ -301,15 +313,15 @@ namespace ML{
                     }
                     break;
                 case ARROW_DOWN:
-                    if(d < p._body[0].size() - totalHeight){
-                        d++;
+                    if(min < p._body[0].size() - totalHeight){
+                        min++;
                         max++;
                         Terminal::clearScreen();
                     }
                     break;
                 case ARROW_UP:
-                    if(d >0){
-                        d--;
+                    if(min >0){
+                        min--;
                         max--;
                         Terminal::clearScreen();
                     }
@@ -356,21 +368,9 @@ namespace ML{
 
     auto PPrint::printColumn(PrettyPrintData& p, size_t idx, size_t colPos, size_t rowPos,
                 size_t min, size_t max, uint32_t indent,uint32_t const maxLine, uint32_t maxWidth) -> int{
-        int x = (maxWidth + indent) * colPos + 10 ,y{3};
+        int x = (maxWidth + indent) * colPos + 10 ,y{0};
         std::vector<std::string> lines;
         std::string line;
-
-        for(int i = min; i < max; i++){
-            Terminal::setCursor(0,y);
-            std::string t = std::to_string(i);
-            auto ls = 5 > t.size() ? 5 - t.size() : 0;
-            ls /= 2;
-            std::string c = getColor(PPrint::ColorHeaderFG, PPrint::ColorHeaderBG) + ";1m";
-            t = c + std::string(ls,' ') + t + std::string(ls,' ') + std::string("\x1b[0m");
-            write(STDOUT_FILENO,t.c_str(),t.size());
-            y += rowPos + maxLine + 1;
-        }
-        y = 0;
         
         if(p._headers[idx] == ""){
             Terminal::setCursor(x,y);
@@ -463,6 +463,17 @@ namespace ML{
                 }
                 y = yTemp + maxLine + 1;
             }
+        }
+        y = 3;
+        for(int i = min; i < max; i++){
+            Terminal::setCursor(0,y);
+            std::string t = std::to_string(i);
+            auto ls = 5 > t.size() ? 5 - t.size() : 0;
+            ls /= 2;
+            std::string c = getColor(PPrint::ColorHeaderFG, PPrint::ColorHeaderBG) + ";1m";
+            t = c + std::string(ls,' ') + t + std::string(ls,' ') + std::string("\x1b[0m");
+            write(STDOUT_FILENO,t.c_str(),t.size());
+            y += rowPos + maxLine + 1;
         }
         return y;
     }

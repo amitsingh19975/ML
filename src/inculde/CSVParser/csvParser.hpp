@@ -6,19 +6,24 @@
 
 namespace ML{
     struct CSV : public Frame{
-        CSV(const std::string fileName);
+        CSV(const std::string fileName,bool parse = true);
 
+            void parseToType();
         protected:
             void getHeader(std::string& headers);
             std::vector<std::string> parseData(std::string& data);
             void parse(std::vector<std::string>& data);
-            void parseType();
             void normalizeFileName(std::string& fileName);
             std::ifstream _f;
             std::vector<bool> isDouble;
+            void trim(std::string& str) const noexcept{
+                str.erase(str.begin(),std::find_if(str.begin(),str.end(),[](char c){
+                    return !std::isspace(c);
+                }));
+            }
     };
 
-    CSV::CSV(std::string fileName){
+    CSV::CSV(std::string fileName, bool parse){
         this->normalizeFileName(fileName);
         _f.open(fileName);
         if(!_f){
@@ -30,15 +35,15 @@ namespace ML{
         this->getHeader(headers);
         
         this->isDouble.resize(this->_headers.size());
+
         for(size_t i = 0; i < this->isDouble.size(); i++) this->isDouble[i] = true;
 
         while(getline(_f,data)) {
             auto d = this->parseData(data);
             this->parse(d);
         }
-
         this->updateSize();
-        this->parseType();
+        if(parse) this->parseToType();
     }
 
     void CSV::getHeader(std::string& headers){
@@ -60,7 +65,7 @@ namespace ML{
                     temp +=c;
                     os>>c;
                 }
-                if(!os.eof()) this->_headers.push_back(temp);
+                this->_headers.push_back(temp);
             }
         }
     }
@@ -142,13 +147,19 @@ namespace ML{
         return d;
     }
 
-    void CSV::parseType(){
+    void CSV::parseToType(){
         auto size = this->_headers.size();
         for(auto i = 0; i < isDouble.size(); i++){
             if(isDouble[i]){
-                SeriesUnique series{new Vec<double>(this->_headers[i],"double", {std::stod(this->at<std::string>(0,i))})};
+                double temp;
+
+                if(this->at<std::string>(0,i) == "") temp = std::numeric_limits<double>::quiet_NaN();
+                else temp = std::stod(this->at<std::string>(0,i));
+                SeriesUnique series{new Vec<double>(this->_headers[i],"double", {temp})};
                 for(auto j = 1; j <this->_rows; j++){
-                    series->push_d(std::stod(this->at<std::string>(j,i)));
+                    if(this->at<std::string>(j,i) == "") temp = std::numeric_limits<double>::quiet_NaN();
+                    else temp = std::stod(this->at<std::string>(j,i));
+                    series->push_d(temp);
                 }
                 this->_data[i] = std::move(series);
             }
@@ -163,7 +174,9 @@ namespace ML{
                 try{
                     (void)stod(data[i]);
                 }catch(...){
-                    isDouble[i] = false;
+                    trim(data[i]);
+                    if(data[i] != "")
+                        isDouble[i] = false;
                 }
                 SeriesUnique series{new Vec<std::string>(this->_headers[i],"string", {data[i]})};
                 this->_data.push_back(std::move(series));
@@ -173,7 +186,9 @@ namespace ML{
                 try{
                     (void)stod(data[i]);
                 }catch(...){
-                    isDouble[i] = false;
+                    trim(data[i]);
+                    if(data[i] != "")
+                        isDouble[i] = false;
                 }
                 this->_data[i]->push_s(data[i]);
             }
